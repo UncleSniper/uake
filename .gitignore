@@ -1,0 +1,4 @@
+/lib/*.jar
+/bin
+/dist
+/doc/api

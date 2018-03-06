@@ -1,0 +1,111 @@
+utterance			::= header* toplevel*
+header				::= import
+import				::= 'import' ('mod' jqname | import_tail)
+import_tail			::= NAME ('as' NAME | ':' (import_tail | '{' import_tail % ',' '}'))
+toplevel			::= definition
+						| statement
+definition			::= module
+						| function
+						| record_type
+						| property
+						| provision
+						| variable
+module				::= 'mod' qname '{' toplevel* '}'
+function			::= 'fun' type NAME tparam_spec? param_spec? fun_body
+fun_body			::= block property_trigger*
+						| ('=' | 'return') expression property_trigger* ';'
+						| 'native' (STRING | jqname) ':' (STRING | NAME) ';'
+record_type			::= 'type' NAME tparam_spec? ('extends' type % ',') record_body
+record_body			::= '{' record_field* '}'
+						| 'native' (STRING | jqname) ';'
+record_field		::= type NAME ';'
+property			::= 'property' type NAME tparam_spec? param_spec?
+						('=' qname template_args?)?
+						property_trigger* ';'
+property_trigger	::= 'on' ('use' | 'unuse') qname template_args?
+provision			::= 'provide' type NAME tparam_spec? param_spec? provision_trigger provision_body
+provision_trigger	::= 'if' expression '->'
+						| '=' expression '->'
+provision_body		::= block
+						| 'return' expression ';'
+						| 'using' expression ';'
+variable			::= 'var' type NAME ('=' expression) ';'
+						| 'const' type NAME '=' expression ';'
+qname				::= NAME % ':'
+jqname				::= NAME % '.'
+type				::= qname template_args?
+template_args		::= '<' type % ',' '>'
+param_spec			::= '(' (parameter % ',')? ')'
+parameter			::= type '..'? NAME
+tparam_spec			::= '<' NAME % ',' '..'? '>'
+statement			::= expression ';'
+block				::= '{' (statement | variable)* '}'
+expression			::= control
+						| assignment
+control				::= if
+						| for
+						| foreach
+						| while
+						| use
+						| unuse
+						| using
+						| lambda
+						| break
+						| continue
+						| return
+if					::= ('if' | 'unless') expression 'then' statement
+						(('elif' | 'elunless') expression 'then' statement)*
+						('else' statement)?
+for					::= 'for' (for_variable | statement | ';') expression? ';' expression? 'do' statement
+for_variable		::= ('var' | 'const') type NAME ';'
+foreach				::= 'foreach' type NAME 'in' expression 'do' statement
+while				::= ('while' | 'until') expression 'do' statement
+use					::= 'use' subscript subscript ';'
+unuse				::= 'unuse' expression ';'
+using				::= 'using' subscript subscript 'in' statement
+lambda				::= '\' type param_spec? ('=' | 'return' | '->') expression
+break				::= 'break' (INT expression?)? ';'
+continue			::= 'continue' (INT expression?)? ';'
+return				::= 'return' expression? ';'
+assignment			::= logical_or % assignment_oper
+assignment_oper		::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '>>>='
+logical_or			::= logical_and % '||'
+logical_and			::= instanceof % '&&'
+instanceof			::= bitwise_or (('is' | 'as') type)*
+bitwise_or			::= bitwise_xor % '|'
+bitwise_xor			::= bitwise_and % '^'
+bitwise_and			::= containment % '&'
+containment			::= equality % ('not'? 'in')
+equality			::= relational % ('==' | '!=')
+relational			::= shift % ('<' | '>' | '<=' | '>=')
+shift				::= additive % ('<<' | '>>' | '>>>')
+additive			::= multiplicative % ('+' | '-')
+multiplicative		::= prefix % ('*' | '/' | '%')
+prefix				::= ('++' | '--' | '+' | '-' | '~' | '!' | 'not')* juxtaposition
+juxtaposition		::= 'require'? subscript+
+subscript			::= postfix % '@'
+postfix				::= primary postfix_oper*
+postfix_oper		::= '++'
+						| '--'
+						| '.' NAME
+						| ':' NAME
+primary				::= atom
+						| '(' expression ')'
+						| block
+						| list_literal
+						| map_literal
+						| new
+list_literal		::= '[' (expression % ',')? ']'
+map_literal			::= '%{' (map_binding % ',')? '}'
+map_binding			::= expression '->' expression
+new					::= 'new' type '{' (field_init % ',')? '}'
+field_init			::= NAME '=' expression
+atom				::= NAME
+						| BYTE
+						| SHORT
+						| INT
+						| LONG
+						| FLOAT
+						| DOUBLE
+						| CHAR
+						| STRING

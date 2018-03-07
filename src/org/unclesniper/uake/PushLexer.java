@@ -1,6 +1,6 @@
 package org.unclesniper.uake;
 
-public class PushLexer {
+public class PushLexer implements LocationTracker {
 
 	private enum State {
 		NONE,
@@ -99,6 +99,10 @@ public class PushLexer {
 
 	public void setColumn(int column) {
 		this.column = column;
+	}
+
+	public Location getLocation() {
+		return new Location(file, line, column);
 	}
 
 	private void unexpected(char c) {
@@ -968,6 +972,91 @@ public class PushLexer {
 			else
 				++column;
 		}
+	}
+
+	public void endUnit() {
+		switch(state) {
+			case NONE:
+			case INT_TYPE:
+			case FLOAT_TYPE:
+				break;
+			case PLUS:
+				emit(Token.Type.PLUS, "+");
+				break;
+			case MINUS:
+				emit(Token.Type.MINUS, "-");
+				break;
+			case ASTERISK:
+				emit(Token.Type.MULTIPLY, "*");
+				break;
+			case SLASH:
+				emit(Token.Type.DIVIDE, "/");
+				break;
+			case PERCENT:
+				emit(Token.Type.MODULO, "%");
+				break;
+			case AMPERSAND:
+				emit(Token.Type.BITWISE_AND, "&");
+				break;
+			case CARET:
+				emit(Token.Type.BITWISE_XOR, "^");
+				break;
+			case PIPE:
+				emit(Token.Type.BITWISE_OR, "|");
+				break;
+			case LESS:
+				emit(Token.Type.LESS, "<");
+				break;
+			case DOUBLE_LESS:
+				emit(Token.Type.SHIFT_LEFT, "<<");
+				break;
+			case GREATER:
+				emit(Token.Type.GREATER, ">");
+				break;
+			case DOUBLE_GREATER:
+				emit(Token.Type.SIGNED_SHIFT_RIGHT, ">>");
+				break;
+			case TRIPLE_GREATER:
+				emit(Token.Type.UNSIGNED_SHIFT_RIGHT, ">>>");
+				break;
+			case DOT:
+				emit(Token.Type.DOT, ".");
+				break;
+			case EQUAL:
+				emit(Token.Type.ASSIGN, "=");
+				break;
+			case NAME:
+				emit(Token.Type.NAME);
+				break;
+			case ZERO:
+			case DEC_INT:
+			case OCT_INT:
+			case HEX_INT:
+				emit(Token.Type.INT);
+				break;
+			case FLOAT:
+			case EXPONENT_DIGITS:
+				emit(Token.Type.DOUBLE);
+				break;
+			case ZERO_X:
+			case BROKEN_OCT_INT:
+			case DECIMAL_POINT:
+			case EXPONENT_E:
+			case EXPONENT_SIGN:
+			case STRING:
+			case STRING_ESCAPE:
+			case STRING_U:
+			case STRING_DIGITS:
+			case EMPTY_CHAR:
+			case CHAR_ESCAPE:
+			case CHAR_U:
+			case CHAR_DIGITS:
+			case FULL_CHAR:
+				throw new UnexpectedEndOfLexicalUnitException(new Location(file, line, column));
+			default:
+				throw new Doom("Unrecognized state: " + state.name());
+		}
+		state = State.NONE;
 	}
 
 }

@@ -14,4 +14,14 @@ public class Utterance extends Syntax {
 		super(location);
 	}
 
+	public void addHeader(Header header) {
+		if(header != null)
+			headers.add(header);
+	}
+
+	public void addTopLevel(TopLevel topLevel) {
+		if(topLevel != null)
+			topLevels.add(topLevel);
+	}
+
 }

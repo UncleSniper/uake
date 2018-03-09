@@ -1,5 +1,9 @@
 package org.unclesniper.uake;
 
+import org.unclesniper.uake.syntax.Header;
+import org.unclesniper.uake.syntax.TopLevel;
+import org.unclesniper.uake.syntax.Utterance;
+
 public class Parser {
 
 	private Source<Token> lexer;
@@ -56,6 +60,48 @@ public class Parser {
 		if(token == null || token.getType() != expected)
 			unexpected(expected);
 		token = lexer.next();
+	}
+
+	public Utterance parseUtterance() {
+		Utterance utterance = new Utterance(locationTracker.getLocation());
+		next();
+		Location location = null;
+		boolean haveTopLevel = false;
+		while(token != null) {
+			if(location == null)
+				location = token.getLocation();
+			Token.Type type = token.getType();
+			if(!haveTopLevel && Parser.startsHeader(type))
+				utterance.addHeader(parseHeader());
+			else if(Parser.startsTopLevel(type)) {
+				utterance.addTopLevel(parseTopLevel());
+				haveTopLevel = true;
+			}
+			else
+				unexpected(haveTopLevel ? "definition or statement" : "header, definition or statement");
+		}
+		if(location != null)
+			utterance.setLocation(location);
+		return utterance;
+	}
+
+	private Header parseHeader() {
+		//TODO
+		return null;
+	}
+
+	private TopLevel parseTopLevel() {
+		//TODO
+		return null;
+	}
+
+	private static boolean startsHeader(Token.Type type) {
+		return type == Token.Type.IMPORT;
+	}
+
+	private static boolean startsTopLevel(Token.Type type) {
+		//TODO
+		return false;
 	}
 
 }

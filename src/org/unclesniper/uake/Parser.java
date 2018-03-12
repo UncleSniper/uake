@@ -56,10 +56,12 @@ public class Parser {
 			unexpected(expected);
 	}
 
-	private void consume(Token.Type expected) {
+	private Location consume(Token.Type expected) {
 		if(token == null || token.getType() != expected)
 			unexpected(expected);
+		Location location = token.getLocation();
 		token = lexer.next();
+		return location;
 	}
 
 	public Utterance parseUtterance() {
@@ -86,8 +88,18 @@ public class Parser {
 	}
 
 	private Header parseHeader() {
-		//TODO
-		return null;
+		Location initiator = consume(Token.Type.IMPORT);
+		if(token == null)
+			unexpected(Token.Type.MOD, Token.Type.NAME);
+		switch(token.getType()) {
+			case MOD:
+				//TODO
+			case NAME:
+				//TODO
+			default:
+				unexpected(Token.Type.MOD, Token.Type.NAME);
+				return null;
+		}
 	}
 
 	private TopLevel parseTopLevel() {

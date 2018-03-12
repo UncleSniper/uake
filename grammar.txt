@@ -1,7 +1,8 @@
 utterance			::= header* toplevel*
 header				::= import
-import				::= 'import' ('mod' jqname | import_tail)
-import_tail			::= NAME ('as' NAME | ':' (import_tail | '{' import_tail % ',' '}'))
+import				::= 'import' ('mod' jqname | NAME import_tail)
+import_tail			::= 'as' NAME
+						| ':' (NAME import_tail? | '{' (NAME import_tail?) % ',' '}')
 toplevel			::= definition
 						| statement
 definition			::= module

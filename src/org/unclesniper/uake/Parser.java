@@ -4,8 +4,12 @@ import org.unclesniper.uake.syntax.Header;
 import org.unclesniper.uake.syntax.Import;
 import org.unclesniper.uake.syntax.TopLevel;
 import org.unclesniper.uake.syntax.Utterance;
+import org.unclesniper.uake.syntax.Statement;
+import org.unclesniper.uake.syntax.Definition;
 import org.unclesniper.uake.syntax.ModuleImport;
 import org.unclesniper.uake.syntax.QualifiedName;
+import org.unclesniper.uake.syntax.TypeSpecifier;
+import org.unclesniper.uake.syntax.ModuleDefinition;
 
 public class Parser {
 
@@ -198,7 +202,138 @@ public class Parser {
 		return qname;
 	}
 
+	private QualifiedName parseQName() {
+		QualifiedName qname = new QualifiedName();
+		expect(Token.Type.NAME);
+		qname.addSegment(new QualifiedName.Segment(token.getLocation(), token.getRawText()));
+		next();
+		while(token != null && token.getType() == Token.Type.COLON) {
+			next();
+			expect(Token.Type.NAME);
+			qname.addSegment(new QualifiedName.Segment(token.getLocation(), token.getRawText()));
+			next();
+		}
+		return qname;
+	}
+
 	private TopLevel parseTopLevel() {
+		if(token == null)
+			unexpected("definition or statement");
+		switch(token.getType()) {
+			case MOD:
+			case FUN:
+			case TYPE:
+			case PROPERTY:
+			case PROVIDE:
+			case VAR:
+			case CONST:
+				return parseDefinition();
+			case MINUS:
+			case NOT:
+			case BYTE:
+			case SHORT:
+			case INT:
+			case LONG:
+			case FLOAT:
+			case DOUBLE:
+			case CHAR:
+			case STRING:
+			case PLUS:
+			case LOGICAL_NOT:
+			case UNTIL:
+			case BITWISE_NOT:
+			case INCREMENT:
+			case DECREMENT:
+			case LEFT_SQUARE:
+			case LEFT_ROUND:
+			case BREAK:
+			case NAME:
+			case FOR:
+			case IF:
+			case LAMBDA:
+			case UNLESS:
+			case WHILE:
+			case LEFT_CURLY:
+			case USING:
+			case RETURN:
+			case REQUIRE:
+			case NEW:
+			case PERCENT_LEFT_CURLY:
+			case FOREACH:
+			case USE:
+			case CONTINUE:
+			case UNUSE:
+				return parseStatement();
+			default:
+				unexpected("definition or statement");
+				return null;
+		}
+	}
+
+	private Definition parseDefinition() {
+		if(token == null)
+			unexpected("definition");
+		switch(token.getType()) {
+			case MOD:
+				return parseModule();
+			case FUN:
+				//TODO
+			case TYPE:
+				//TODO
+			case PROPERTY:
+				//TODO
+			case PROVIDE:
+				//TODO
+			case VAR:
+				//TODO
+			case CONST:
+				//TODO
+			default:
+				unexpected("definition");
+				return null;
+		}
+	}
+
+	private ModuleDefinition parseModule() {
+		Location initiator = consume(Token.Type.MOD);
+		ModuleDefinition module = new ModuleDefinition(initiator, parseQName());
+		consume(Token.Type.LEFT_CURLY);
+		for(;;) {
+			if(token == null)
+				unexpected("definition, statement or '}'");
+			if(token.getType() == Token.Type.RIGHT_CURLY) {
+				next();
+				return module;
+			}
+			if(!Parser.startsTopLevel(token.getType()))
+				unexpected("definition, statement or '}'");
+			module.addChild(parseTopLevel());
+		}
+	}
+
+	private TypeSpecifier parseType() {
+		TypeSpecifier type = new TypeSpecifier(parseQName());
+		if(token == null || token.getType() != Token.Type.LESS)
+			return type;
+		next();
+		for(;;) {
+			type.addTemplateArgument(parseType());
+			if(token == null)
+				unexpected(Token.Type.COMMA, Token.Type.GREATER);
+			switch(token.getType()) {
+				case COMMA:
+					next();
+					break;
+				case GREATER:
+					next();
+					return type;
+				default:
+					unexpected(Token.Type.COMMA, Token.Type.GREATER);
+			}
+		}
+	}
+
+	private Statement parseStatement() {
 		//TODO
 		return null;
 	}

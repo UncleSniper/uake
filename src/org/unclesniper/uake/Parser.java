@@ -14,12 +14,17 @@ import org.unclesniper.uake.syntax.ModuleImport;
 import org.unclesniper.uake.syntax.QualifiedName;
 import org.unclesniper.uake.syntax.TypeSpecifier;
 import org.unclesniper.uake.syntax.Parameterized;
+import org.unclesniper.uake.syntax.ClassReference;
+import org.unclesniper.uake.syntax.TypeDefinition;
 import org.unclesniper.uake.syntax.PropertyTrigger;
+import org.unclesniper.uake.syntax.BinaryClassName;
 import org.unclesniper.uake.syntax.ModuleDefinition;
 import org.unclesniper.uake.syntax.TemplateParameter;
 import org.unclesniper.uake.syntax.FunctionDefinition;
 import org.unclesniper.uake.syntax.VariableDefinition;
 import org.unclesniper.uake.syntax.TemplateInvocation;
+import org.unclesniper.uake.syntax.QualifiedClassName;
+import org.unclesniper.uake.syntax.PropertyDefinition;
 
 public class Parser {
 
@@ -289,9 +294,9 @@ public class Parser {
 			case FUN:
 				return parseFunction();
 			case TYPE:
-				//TODO
+				return parseRecordType();
 			case PROPERTY:
-				//TODO
+				return parseProperty();
 			case PROVIDE:
 				//TODO
 			case VAR:
@@ -404,22 +409,7 @@ public class Parser {
 				{
 					Location bodyInitiator = token.getLocation();
 					next();
-					if(token == null)
-						unexpected(Token.Type.STRING, Token.Type.NAME);
-					FunctionDefinition.NativeBody.ClassReference classReference;
-					switch(token.getType()) {
-						case STRING:
-							classReference = new FunctionDefinition.NativeBody.BinaryClassName(token.getLocation(),
-									token.getCookedText());
-							next();
-							break;
-						case NAME:
-							classReference = new FunctionDefinition.NativeBody.QualifiedClassName(parseJQName());
-							break;
-						default:
-							unexpected(Token.Type.STRING, Token.Type.NAME);
-							return null;
-					}
+					ClassReference classReference = parseClassReference();
 					consume(Token.Type.COLON);
 					if(token == null)
 						unexpected(Token.Type.STRING, Token.Type.NAME);
@@ -547,6 +537,25 @@ public class Parser {
 		return parameter;
 	}
 
+	private ClassReference parseClassReference() {
+		if(token == null)
+			unexpected(Token.Type.STRING, Token.Type.NAME);
+		ClassReference classReference;
+		switch(token.getType()) {
+			case STRING:
+				classReference = new BinaryClassName(token.getLocation(), token.getCookedText());
+				next();
+				break;
+			case NAME:
+				classReference = new QualifiedClassName(parseJQName());
+				break;
+			default:
+				unexpected(Token.Type.STRING, Token.Type.NAME);
+				return null;
+		}
+		return classReference;
+	}
+
 	private VariableDefinition parseVariable() {
 		if(token == null)
 			unexpected(Token.Type.VAR, Token.Type.CONST);
@@ -660,6 +669,152 @@ public class Parser {
 					break;
 			}
 		}
+	}
+
+	private TypeDefinition parseRecordType() {
+		Location initiator = consume(Token.Type.TYPE);
+		expect(Token.Type.NAME);
+		String name = token.getRawText();
+		Location nameLocation = token.getLocation();
+		next();
+		if(token == null)
+			unexpected(Token.Type.LESS, Token.Type.EXTENDS, Token.Type.LEFT_CURLY, Token.Type.NATIVE);
+		TypeDefinition type = new TypeDefinition(initiator, name, nameLocation, null);
+		switch(token.getType()) {
+			case LESS:
+				parseTemplateParameters(type);
+				break;
+			case EXTENDS:
+			case LEFT_CURLY:
+			case NATIVE:
+				break;
+			default:
+				unexpected(Token.Type.LESS, Token.Type.EXTENDS, Token.Type.LEFT_CURLY, Token.Type.NATIVE);
+		}
+		if(token == null)
+			unexpected(Token.Type.EXTENDS, Token.Type.LEFT_CURLY, Token.Type.NATIVE);
+		switch(token.getType()) {
+			case EXTENDS:
+				next();
+				for(;;) {
+					type.addSupertype(parseType());
+					if(token != null && token.getType() == Token.Type.COMMA)
+						next();
+					else
+						break;
+				}
+				break;
+			case LEFT_CURLY:
+			case NATIVE:
+				break;
+			default:
+				unexpected(Token.Type.EXTENDS, Token.Type.LEFT_CURLY, Token.Type.NATIVE);
+		}
+		if(token == null)
+			unexpected(Token.Type.LEFT_CURLY, Token.Type.NATIVE);
+		switch(token.getType()) {
+			case LEFT_CURLY:
+				{
+					TypeDefinition.FieldsBody body = new TypeDefinition.FieldsBody(token.getLocation());
+					next();
+					for(;;) {
+						if(token == null)
+							unexpected(Token.Type.NAME, Token.Type.RIGHT_CURLY);
+						if(token.getType() == Token.Type.RIGHT_CURLY) {
+							next();
+							break;
+						}
+						if(token.getType() != Token.Type.NAME)
+							unexpected(Token.Type.NAME, Token.Type.RIGHT_CURLY);
+						TypeSpecifier fieldType = parseType();
+						expect(Token.Type.NAME);
+						body.addField(new TypeDefinition.FieldsBody.Field(fieldType,
+								token.getLocation(), token.getRawText()));
+						next();
+						consume(Token.Type.SEMICOLON);
+					}
+					type.setBody(body);
+				}
+				break;
+			case NATIVE:
+				{
+					Location bodyLocation = token.getLocation();
+					next();
+					type.setBody(new TypeDefinition.NativeBody(bodyLocation, parseClassReference()));
+					consume(Token.Type.SEMICOLON);
+				}
+				break;
+			default:
+				unexpected(Token.Type.LEFT_CURLY, Token.Type.NATIVE);
+		}
+		return type;
+	}
+
+	private PropertyDefinition parseProperty() {
+		Location initiator = token.getLocation();
+		next();
+		TypeSpecifier returnType = parseType();
+		expect(Token.Type.NAME);
+		PropertyDefinition property = new PropertyDefinition(initiator, returnType,
+				token.getRawText(), token.getLocation());
+		next();
+		if(token == null)
+			unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.SEMICOLON);
+		switch(token.getType()) {
+			case LESS:
+				parseTemplateParameters(property);
+				break;
+			case LEFT_ROUND:
+			case ASSIGN:
+			case SEMICOLON:
+				break;
+			default:
+				unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.SEMICOLON);
+		}
+		if(token == null)
+			unexpected(Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.SEMICOLON);
+		switch(token.getType()) {
+			case LEFT_ROUND:
+				parseParameters(property);
+				break;
+			case ASSIGN:
+			case SEMICOLON:
+				break;
+			default:
+				unexpected(Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.SEMICOLON);
+		}
+		if(token == null)
+			unexpected(Token.Type.ASSIGN, Token.Type.SEMICOLON);
+		switch(token.getType()) {
+			case ASSIGN:
+				{
+					Location bottomInitiator = token.getLocation();
+					next();
+					PropertyDefinition.Bottom bottom = new PropertyDefinition.Bottom(initiator, parseQName());
+					if(token == null)
+						unexpected(Token.Type.LESS, Token.Type.SEMICOLON);
+					switch(token.getType()) {
+						case LESS:
+							parseTemplateArguments(bottom);
+							expect(Token.Type.SEMICOLON);
+							break;
+						case SEMICOLON:
+							break;
+						default:
+							unexpected(Token.Type.LESS, Token.Type.SEMICOLON);
+					}
+					property.setBottom(bottom);
+				}
+				break;
+			case SEMICOLON:
+				break;
+			default:
+				unexpected(Token.Type.ASSIGN, Token.Type.SEMICOLON);
+		}
+		next();
+		while(token != null && token.getType() == Token.Type.ON)
+			property.addTrigger(parsePropertyTrigger());
+		return property;
 	}
 
 	private Statement parseStatement() {

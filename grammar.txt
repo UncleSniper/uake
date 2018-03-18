@@ -16,15 +16,15 @@ function			::= 'fun' type NAME tparam_spec? param_spec? fun_body
 fun_body			::= block property_trigger*
 						| ('=' | 'return') expression ';' property_trigger*
 						| 'native' (STRING | jqname) ':' (STRING | NAME)
-record_type			::= 'type' NAME tparam_spec? ('extends' type % ',') record_body
+record_type			::= 'type' NAME tparam_spec? ('extends' type % ',')? record_body
 record_body			::= '{' record_field* '}'
 						| 'native' (STRING | jqname) ';'
 record_field		::= type NAME ';'
 property			::= 'property' type NAME tparam_spec? param_spec?
-						('=' qname template_args?)?
-						property_trigger* ';'
+						('=' qname template_args?)? ';'
+						property_trigger*
 property_trigger	::= 'on' ('use' | 'unuse') qname template_args?
-provision			::= 'provide' type NAME tparam_spec? param_spec? provision_trigger provision_body
+provision			::= 'provide' type NAME tparam_spec? param_spec? provision_trigger? provision_body
 provision_trigger	::= 'if' expression '->'
 						| '=' expression '->'
 provision_body		::= block

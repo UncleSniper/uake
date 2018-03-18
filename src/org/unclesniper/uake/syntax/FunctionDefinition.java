@@ -65,44 +65,6 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 	public static class NativeBody extends Body {
 
-		public static abstract class ClassReference extends Syntax {
-
-			public ClassReference(Location location) {
-				super(location);
-			}
-
-		}
-
-		public static class BinaryClassName extends ClassReference {
-
-			private final String binaryName;
-
-			public BinaryClassName(Location location, String binaryName) {
-				super(location);
-				this.binaryName = binaryName;
-			}
-
-			public String getBinaryName() {
-				return binaryName;
-			}
-
-		}
-
-		public static class QualifiedClassName extends ClassReference {
-
-			private final QualifiedName qualifiedName;
-
-			public QualifiedClassName(QualifiedName qualifiedName) {
-				super(qualifiedName.getLocation());
-				this.qualifiedName = qualifiedName;
-			}
-
-			public QualifiedName getQualifiedName() {
-				return qualifiedName;
-			}
-
-		}
-
 		private final ClassReference classReference;
 
 		private final String methodName;

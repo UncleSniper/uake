@@ -14,6 +14,62 @@ public class TypeDefinition extends AbstractTemplate {
 
 	}
 
+	public static class FieldsBody extends Body {
+
+		public static class Field extends Syntax {
+
+			private final TypeSpecifier type;
+
+			private final String name;
+
+			public Field(TypeSpecifier type, Location nameLocation, String name) {
+				super(nameLocation);
+				this.type = type;
+				this.name = name;
+			}
+
+			public TypeSpecifier getType() {
+				return type;
+			}
+
+			public String getName() {
+				return name;
+			}
+
+		}
+
+		private final List<Field> fields = new LinkedList<Field>();
+
+		public FieldsBody(Location location) {
+			super(location);
+		}
+
+		public Iterable<Field> getFields() {
+			return fields;
+		}
+
+		public void addField(Field field) {
+			if(field != null)
+				fields.add(field);
+		}
+
+	}
+
+	public static class NativeBody extends Body {
+
+		private final ClassReference classReference;
+
+		public NativeBody(Location initiator, ClassReference classReference) {
+			super(initiator);
+			this.classReference = classReference;
+		}
+
+		public ClassReference getClassReference() {
+			return classReference;
+		}
+
+	}
+
 	private String name;
 
 	private Location nameLocation;

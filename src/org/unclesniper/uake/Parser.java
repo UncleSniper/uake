@@ -1,15 +1,25 @@
 package org.unclesniper.uake;
 
+import org.unclesniper.uake.syntax.Block;
 import org.unclesniper.uake.syntax.Header;
 import org.unclesniper.uake.syntax.Import;
 import org.unclesniper.uake.syntax.TopLevel;
+import org.unclesniper.uake.syntax.Template;
 import org.unclesniper.uake.syntax.Utterance;
 import org.unclesniper.uake.syntax.Statement;
+import org.unclesniper.uake.syntax.Parameter;
 import org.unclesniper.uake.syntax.Definition;
+import org.unclesniper.uake.syntax.Expression;
 import org.unclesniper.uake.syntax.ModuleImport;
 import org.unclesniper.uake.syntax.QualifiedName;
 import org.unclesniper.uake.syntax.TypeSpecifier;
+import org.unclesniper.uake.syntax.Parameterized;
+import org.unclesniper.uake.syntax.PropertyTrigger;
 import org.unclesniper.uake.syntax.ModuleDefinition;
+import org.unclesniper.uake.syntax.TemplateParameter;
+import org.unclesniper.uake.syntax.FunctionDefinition;
+import org.unclesniper.uake.syntax.VariableDefinition;
+import org.unclesniper.uake.syntax.TemplateInvocation;
 
 public class Parser {
 
@@ -277,7 +287,7 @@ public class Parser {
 			case MOD:
 				return parseModule();
 			case FUN:
-				//TODO
+				return parseFunction();
 			case TYPE:
 				//TODO
 			case PROPERTY:
@@ -285,9 +295,8 @@ public class Parser {
 			case PROVIDE:
 				//TODO
 			case VAR:
-				//TODO
 			case CONST:
-				//TODO
+				return parseVariable();
 			default:
 				unexpected("definition");
 				return null;
@@ -333,7 +342,333 @@ public class Parser {
 		}
 	}
 
+	private FunctionDefinition parseFunction() {
+		Location initiator = consume(Token.Type.FUN);
+		TypeSpecifier returnType = parseType();
+		expect(Token.Type.NAME);
+		FunctionDefinition function = new FunctionDefinition(initiator, returnType,
+				token.getRawText(), token.getLocation());
+		next();
+		if(token == null)
+			unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.LEFT_CURLY,
+					Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.NATIVE);
+		switch(token.getType()) {
+			case LESS:
+				parseTemplateParameters(function);
+				break;
+			case LEFT_ROUND:
+			case LEFT_CURLY:
+			case ASSIGN:
+			case RETURN:
+			case NATIVE:
+				break;
+			default:
+				unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.LEFT_CURLY,
+						Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.NATIVE);
+		}
+		if(token == null)
+			unexpected(Token.Type.LEFT_ROUND, Token.Type.LEFT_CURLY,
+					Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.NATIVE);
+		switch(token.getType()) {
+			case LEFT_ROUND:
+				parseParameters(function);
+				break;
+			case LEFT_CURLY:
+			case ASSIGN:
+			case RETURN:
+			case NATIVE:
+				break;
+			default:
+				unexpected(Token.Type.LEFT_ROUND, Token.Type.LEFT_CURLY,
+						Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.NATIVE);
+		}
+		if(token == null)
+			unexpected("function body");
+		FunctionDefinition.ScriptBody scriptBody = null;
+		switch(token.getType()) {
+			case LEFT_CURLY:
+				scriptBody = new FunctionDefinition.BlockBody(parseBlock());
+				function.setBody(scriptBody);
+				break;
+			case ASSIGN:
+			case RETURN:
+				{
+					Location bodyInitiator = token.getLocation();
+					next();
+					scriptBody = new FunctionDefinition.ExpressionBody(bodyInitiator, parseExpression());
+					function.setBody(scriptBody);
+					consume(Token.Type.SEMICOLON);
+				}
+				break;
+			case NATIVE:
+				{
+					Location bodyInitiator = token.getLocation();
+					next();
+					if(token == null)
+						unexpected(Token.Type.STRING, Token.Type.NAME);
+					FunctionDefinition.NativeBody.ClassReference classReference;
+					switch(token.getType()) {
+						case STRING:
+							classReference = new FunctionDefinition.NativeBody.BinaryClassName(token.getLocation(),
+									token.getCookedText());
+							next();
+							break;
+						case NAME:
+							classReference = new FunctionDefinition.NativeBody.QualifiedClassName(parseJQName());
+							break;
+						default:
+							unexpected(Token.Type.STRING, Token.Type.NAME);
+							return null;
+					}
+					consume(Token.Type.COLON);
+					if(token == null)
+						unexpected(Token.Type.STRING, Token.Type.NAME);
+					String methodName;
+					switch(token.getType()) {
+						case STRING:
+							methodName = token.getCookedText();
+							break;
+						case NAME:
+							methodName = token.getRawText();
+							break;
+						default:
+							unexpected(Token.Type.STRING, Token.Type.NAME);
+							return null;
+					}
+					function.setBody(new FunctionDefinition.NativeBody(bodyInitiator, classReference,
+							methodName, token.getLocation()));
+					next();
+				}
+				break;
+			default:
+				unexpected("function body");
+		}
+		if(scriptBody != null) {
+			while(token != null && token.getType() == Token.Type.ON)
+				scriptBody.addTrigger(parsePropertyTrigger());
+		}
+		return function;
+	}
+
+	private void parseTemplateParameters(Template sink) {
+		consume(Token.Type.LESS);
+		for(;;) {
+			expect(Token.Type.NAME);
+			String name = token.getRawText();
+			Location location = token.getLocation();
+			next();
+			boolean elliptic = token != null && token.getType() == Token.Type.ELLIPSIS;
+			if(elliptic)
+				next();
+			sink.addTemplateParameter(new TemplateParameter(location, name, elliptic));
+			if(token == null) {
+				if(elliptic)
+					unexpected(Token.Type.GREATER);
+				else
+					unexpected(Token.Type.GREATER, Token.Type.COMMA, Token.Type.ELLIPSIS);
+			}
+			switch(token.getType()) {
+				case GREATER:
+					next();
+					return;
+				case COMMA:
+					if(elliptic)
+						unexpected(Token.Type.GREATER);
+					next();
+					break;
+				default:
+					if(elliptic)
+						unexpected(Token.Type.GREATER);
+					else
+						unexpected(Token.Type.GREATER, Token.Type.COMMA, Token.Type.ELLIPSIS);
+			}
+		}
+	}
+
+	private void parseParameters(Parameterized sink) {
+		consume(Token.Type.LEFT_ROUND);
+		if(token == null)
+			unexpected(Token.Type.NAME, Token.Type.RIGHT_ROUND);
+		switch(token.getType()) {
+			case NAME:
+				break;
+			case RIGHT_ROUND:
+				next();
+				return;
+			default:
+				unexpected(Token.Type.NAME, Token.Type.RIGHT_ROUND);
+		}
+		for(;;) {
+			Parameter parameter = parseParameter();
+			boolean elliptic = parameter.isElliptic();
+			sink.addParameter(parameter);
+			if(token == null) {
+				if(elliptic)
+					unexpected(Token.Type.RIGHT_ROUND);
+				else
+					unexpected(Token.Type.COMMA, Token.Type.RIGHT_ROUND);
+			}
+			switch(token.getType()) {
+				case RIGHT_ROUND:
+					next();
+					return;
+				case COMMA:
+					next();
+					break;
+				default:
+					if(elliptic)
+						unexpected(Token.Type.RIGHT_ROUND);
+					else
+						unexpected(Token.Type.COMMA, Token.Type.RIGHT_ROUND);
+			}
+		}
+	}
+
+	private Parameter parseParameter() {
+		TypeSpecifier type = parseType();
+		boolean elliptic;
+		if(token == null)
+			unexpected(Token.Type.ELLIPSIS, Token.Type.NAME);
+		switch(token.getType()) {
+			case ELLIPSIS:
+				elliptic = true;
+				next();
+				expect(Token.Type.NAME);
+				break;
+			case NAME:
+				elliptic = false;
+				break;
+			default:
+				unexpected(Token.Type.ELLIPSIS, Token.Type.NAME);
+				return null;
+		}
+		Parameter parameter = new Parameter(type, token.getLocation(), token.getRawText(), elliptic);
+		next();
+		return parameter;
+	}
+
+	private VariableDefinition parseVariable() {
+		if(token == null)
+			unexpected(Token.Type.VAR, Token.Type.CONST);
+		boolean constant;
+		switch(token.getType()) {
+			case VAR:
+				constant = false;
+				break;
+			case CONST:
+				constant = true;
+				break;
+			default:
+				unexpected(Token.Type.VAR, Token.Type.CONST);
+				return null;
+		}
+		Location initiator = token.getLocation();
+		next();
+		TypeSpecifier type = parseType();
+		expect(Token.Type.NAME);
+		String name = token.getRawText();
+		Location nameLocation = token.getLocation();
+		Expression initializer;
+		if(token == null) {
+			if(constant)
+				unexpected(Token.Type.ASSIGN);
+			else
+				unexpected(Token.Type.ASSIGN, Token.Type.SEMICOLON);
+		}
+		if(constant)
+			expect(Token.Type.ASSIGN);
+		if(token.getType() == Token.Type.ASSIGN) {
+			next();
+			initializer = parseExpression();
+			if(token == null)
+				unexpected(Token.Type.SEMICOLON);
+		}
+		else
+			initializer = null;
+		if(token.getType() != Token.Type.SEMICOLON) {
+			if(initializer == null)
+				unexpected(Token.Type.ASSIGN, Token.Type.SEMICOLON);
+			else
+				unexpected(Token.Type.SEMICOLON);
+		}
+		next();
+		return new VariableDefinition(initiator, constant, type, name, nameLocation, initializer);
+	}
+
+	private PropertyTrigger parsePropertyTrigger() {
+		Location initiator = consume(Token.Type.ON);
+		next();
+		if(token == null)
+			unexpected(Token.Type.USE, Token.Type.UNUSE);
+		PropertyTrigger.Event event;
+		switch(token.getType()) {
+			case USE:
+				event = PropertyTrigger.Event.USE;
+				break;
+			case UNUSE:
+				event = PropertyTrigger.Event.UNUSE;
+				break;
+			default:
+				unexpected(Token.Type.USE, Token.Type.UNUSE);
+				return null;
+		}
+		next();
+		PropertyTrigger trigger = new PropertyTrigger(initiator, event, parseQName());
+		if(token != null && token.getType() == Token.Type.LESS)
+			parseTemplateArguments(trigger);
+		return trigger;
+	}
+
+	private void parseTemplateArguments(TemplateInvocation sink) {
+		consume(Token.Type.LESS);
+		for(;;) {
+			sink.addTemplateArgument(parseType());
+			if(token == null)
+				unexpected(Token.Type.COMMA, Token.Type.GREATER);
+			switch(token.getType()) {
+				case COMMA:
+					next();
+					break;
+				case GREATER:
+					next();
+					return;
+				default:
+					unexpected(Token.Type.COMMA, Token.Type.GREATER);
+			}
+		}
+	}
+
+	private Block parseBlock() {
+		Location initiator = consume(Token.Type.LEFT_CURLY);
+		next();
+		Block block = new Block(initiator);
+		for(;;) {
+			if(token == null)
+				unexpected("statement, variable/constant definition or '}'");
+			switch(token.getType()) {
+				case VAR:
+				case CONST:
+					block.addItem(new Block.VariableItem(parseVariable()));
+					break;
+				case RIGHT_CURLY:
+					next();
+					return block;
+				default:
+					if(!Parser.startsExpression(token.getType()))
+						unexpected("statement, variable/constant definition or '}'");
+					block.addItem(new Block.StatementItem(parseStatement()));
+					break;
+			}
+		}
+	}
+
 	private Statement parseStatement() {
+		Expression expression = parseExpression();
+		consume(Token.Type.SEMICOLON);
+		return new Statement(expression);
+	}
+
+	private Expression parseExpression() {
 		//TODO
 		return null;
 	}
@@ -383,6 +718,49 @@ public class Parser {
 			case PERCENT_LEFT_CURLY:
 			case FOREACH:
 			case FUN:
+			case USE:
+			case CONTINUE:
+			case UNUSE:
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private static boolean startsExpression(Token.Type type) {
+		switch(type) {
+			case MINUS:
+			case NOT:
+			case BYTE:
+			case SHORT:
+			case INT:
+			case LONG:
+			case FLOAT:
+			case DOUBLE:
+			case CHAR:
+			case STRING:
+			case PLUS:
+			case LOGICAL_NOT:
+			case UNTIL:
+			case BITWISE_NOT:
+			case INCREMENT:
+			case DECREMENT:
+			case LEFT_SQUARE:
+			case LEFT_ROUND:
+			case BREAK:
+			case NAME:
+			case FOR:
+			case IF:
+			case LAMBDA:
+			case UNLESS:
+			case WHILE:
+			case LEFT_CURLY:
+			case USING:
+			case RETURN:
+			case REQUIRE:
+			case NEW:
+			case PERCENT_LEFT_CURLY:
+			case FOREACH:
 			case USE:
 			case CONTINUE:
 			case UNUSE:

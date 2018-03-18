@@ -14,8 +14,8 @@ definition			::= module
 module				::= 'mod' qname '{' toplevel* '}'
 function			::= 'fun' type NAME tparam_spec? param_spec? fun_body
 fun_body			::= block property_trigger*
-						| ('=' | 'return') expression property_trigger* ';'
-						| 'native' (STRING | jqname) ':' (STRING | NAME) ';'
+						| ('=' | 'return') expression ';' property_trigger*
+						| 'native' (STRING | jqname) ':' (STRING | NAME)
 record_type			::= 'type' NAME tparam_spec? ('extends' type % ',') record_body
 record_body			::= '{' record_field* '}'
 						| 'native' (STRING | jqname) ';'

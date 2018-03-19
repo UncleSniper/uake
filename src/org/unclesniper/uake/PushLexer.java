@@ -41,7 +41,10 @@ public class PushLexer implements LocationTracker {
 		CHAR_ESCAPE,
 		CHAR_U,
 		CHAR_DIGITS,
-		FULL_CHAR
+		FULL_CHAR,
+		LINE_COMMENT,
+		BLOCK_COMMENT,
+		BLOCK_COMMENT_STAR
 	}
 
 	private Sink<Token> tokenSink;
@@ -370,15 +373,22 @@ public class PushLexer implements LocationTracker {
 					}
 					break;
 				case SLASH:
-					if(c == '=') {
-						emit(Token.Type.DIVIDE_ASSIGN, "/=");
-						state = State.NONE;
-					}
-					else {
-						emit(Token.Type.DIVIDE, "/");
-						state = State.NONE;
-						--i;
-						continue;
+					switch(c) {
+						case '=':
+							emit(Token.Type.DIVIDE_ASSIGN, "/=");
+							state = State.NONE;
+							break;
+						case '/':
+							state = State.LINE_COMMENT;
+							break;
+						case '*':
+							state = State.BLOCK_COMMENT;
+							break;
+						default:
+							emit(Token.Type.DIVIDE, "/");
+							state = State.NONE;
+							--i;
+							continue;
 					}
 					break;
 				case PERCENT:
@@ -962,6 +972,26 @@ public class PushLexer implements LocationTracker {
 					else
 						unexpected(c);
 					break;
+				case LINE_COMMENT:
+					if(c == '\n')
+						state = State.NONE;
+					break;
+				case BLOCK_COMMENT:
+					if(c == '*')
+						state = State.BLOCK_COMMENT_STAR;
+					break;
+				case BLOCK_COMMENT_STAR:
+					switch(c) {
+						case '*':
+							break;
+						case '/':
+							state = State.NONE;
+							break;
+						default:
+							state = State.BLOCK_COMMENT;
+							break;
+					}
+					break;
 				default:
 					throw new Doom("Unrecognized state: " + state.name());
 			}
@@ -979,6 +1009,9 @@ public class PushLexer implements LocationTracker {
 			case NONE:
 			case INT_TYPE:
 			case FLOAT_TYPE:
+			case LINE_COMMENT:
+			case BLOCK_COMMENT:
+			case BLOCK_COMMENT_STAR:
 				break;
 			case PLUS:
 				emit(Token.Type.PLUS, "+");

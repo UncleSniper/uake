@@ -99,7 +99,8 @@ public final class Token {
 		PERCENT_LEFT_CURLY("'%{'"),
 		NEW,
 		EXTENDS,
-		ON;
+		ON,
+		STATIC;
 
 		private final boolean keyword;
 

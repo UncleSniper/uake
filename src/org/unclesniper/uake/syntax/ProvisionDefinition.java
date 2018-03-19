@@ -1,10 +1,47 @@
 package org.unclesniper.uake.syntax;
 
-import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 
-public class FunctionDefinition extends AbstractTemplate implements Parameterized {
+public class ProvisionDefinition extends AbstractTemplate implements Parameterized {
+
+	public static abstract class Trigger extends Syntax {
+
+		public Trigger(Location location) {
+			super(location);
+		}
+
+	}
+
+	public static class ConditionTrigger extends Trigger {
+
+		private final Expression condition;
+
+		public ConditionTrigger(Location initiator, Expression condition) {
+			super(initiator);
+			this.condition = condition;
+		}
+
+		public Expression getCondition() {
+			return condition;
+		}
+
+	}
+
+	public static class EquationTrigger extends Trigger {
+
+		private final Expression referenceValue;
+
+		public EquationTrigger(Location initiator, Expression referenceValue) {
+			super(initiator);
+			this.referenceValue = referenceValue;
+		}
+
+		public Expression getReferenceValue() {
+			return referenceValue;
+		}
+
+	}
 
 	public static abstract class Body extends Syntax {
 
@@ -14,26 +51,7 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 	}
 
-	public static abstract class ScriptBody extends Body {
-
-		private final List<PropertyTrigger> triggers = new LinkedList<PropertyTrigger>();
-
-		public ScriptBody(Location location) {
-			super(location);
-		}
-
-		public Iterable<PropertyTrigger> getTriggers() {
-			return triggers;
-		}
-
-		public void addTrigger(PropertyTrigger trigger) {
-			if(trigger != null)
-				triggers.add(trigger);
-		}
-
-	}
-
-	public static class BlockBody extends ScriptBody {
+	public static class BlockBody extends Body {
 
 		private final Block block;
 
@@ -48,7 +66,7 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 	}
 
-	public static class ExpressionBody extends ScriptBody {
+	public static class ExpressionBody extends Body {
 
 		private final Expression expression;
 
@@ -63,39 +81,17 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 	}
 
-	public static class NativeBody extends Body {
+	public static class CallBody extends Body {
 
-		private final ClassReference classReference;
+		private final Expression function;
 
-		private final boolean staticMethod;
-
-		private final String methodName;
-
-		private final Location methodNameLocation;
-
-		public NativeBody(Location initiator, ClassReference classReference,
-				boolean staticMethod, String methodName, Location methodNameLocation) {
+		public CallBody(Location initiator, Expression function) {
 			super(initiator);
-			this.classReference = classReference;
-			this.staticMethod = staticMethod;
-			this.methodName = methodName;
-			this.methodNameLocation = methodNameLocation;
+			this.function = function;
 		}
 
-		public ClassReference getClassReference() {
-			return classReference;
-		}
-
-		public String getMethodName() {
-			return methodName;
-		}
-
-		public Location getMethodNameLocation() {
-			return methodNameLocation;
-		}
-
-		public boolean isStaticMethod() {
-			return staticMethod;
+		public Expression getFunction() {
+			return function;
 		}
 
 	}
@@ -108,9 +104,11 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 	private final LinkedList<Parameter> parameters = new LinkedList<Parameter>();
 
+	private Trigger trigger;
+
 	private Body body;
 
-	public FunctionDefinition(Location initiator, TypeSpecifier returnType, String name, Location nameLocation) {
+	public ProvisionDefinition(Location initiator, TypeSpecifier returnType, String name, Location nameLocation) {
 		super(initiator);
 		this.returnType = returnType;
 		this.name = name;
@@ -152,6 +150,14 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 	public boolean isElliptic() {
 		return !parameters.isEmpty() && parameters.getLast().isElliptic();
+	}
+
+	public Trigger getTrigger() {
+		return trigger;
+	}
+
+	public void setTrigger(Trigger trigger) {
+		this.trigger = trigger;
 	}
 
 	public Body getBody() {

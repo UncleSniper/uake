@@ -25,6 +25,7 @@ import org.unclesniper.uake.syntax.VariableDefinition;
 import org.unclesniper.uake.syntax.TemplateInvocation;
 import org.unclesniper.uake.syntax.QualifiedClassName;
 import org.unclesniper.uake.syntax.PropertyDefinition;
+import org.unclesniper.uake.syntax.ProvisionDefinition;
 
 public class Parser {
 
@@ -298,7 +299,7 @@ public class Parser {
 			case PROPERTY:
 				return parseProperty();
 			case PROVIDE:
-				//TODO
+				return parseProvision();
 			case VAR:
 			case CONST:
 				return parseVariable();
@@ -411,8 +412,17 @@ public class Parser {
 					next();
 					ClassReference classReference = parseClassReference();
 					consume(Token.Type.COLON);
+					boolean staticMethod;
 					if(token == null)
-						unexpected(Token.Type.STRING, Token.Type.NAME);
+						unexpected(Token.Type.STATIC, Token.Type.STRING, Token.Type.NAME);
+					if(token.getType() == Token.Type.STATIC) {
+						staticMethod = true;
+						next();
+						if(token == null)
+							unexpected(Token.Type.STRING, Token.Type.NAME);
+					}
+					else
+						staticMethod = false;
 					String methodName;
 					switch(token.getType()) {
 						case STRING:
@@ -422,11 +432,14 @@ public class Parser {
 							methodName = token.getRawText();
 							break;
 						default:
-							unexpected(Token.Type.STRING, Token.Type.NAME);
+							if(staticMethod)
+								unexpected(Token.Type.STRING, Token.Type.NAME);
+							else
+								unexpected(Token.Type.STATIC, Token.Type.STRING, Token.Type.NAME);
 							return null;
 					}
 					function.setBody(new FunctionDefinition.NativeBody(bodyInitiator, classReference,
-							methodName, token.getLocation()));
+							staticMethod, methodName, token.getLocation()));
 					next();
 				}
 				break;
@@ -817,6 +830,105 @@ public class Parser {
 		return property;
 	}
 
+	private ProvisionDefinition parseProvision() {
+		Location initiator = consume(Token.Type.PROVIDE);
+		TypeSpecifier returnType = parseType();
+		expect(Token.Type.NAME);
+		ProvisionDefinition provision = new ProvisionDefinition(initiator, returnType,
+				token.getRawText(), token.getLocation());
+		next();
+		if(token == null)
+			unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.IF, Token.Type.ASSIGN,
+					Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		switch(token.getType()) {
+			case LESS:
+				parseTemplateParameters(provision);
+				break;
+			case LEFT_ROUND:
+			case IF:
+			case ASSIGN:
+			case LEFT_CURLY:
+			case RETURN:
+			case USING:
+				break;
+			default:
+				unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.IF, Token.Type.ASSIGN,
+						Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		}
+		if(token == null)
+			unexpected(Token.Type.LEFT_ROUND, Token.Type.IF, Token.Type.ASSIGN,
+					Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		switch(token.getType()) {
+			case LEFT_ROUND:
+				parseParameters(provision);
+				break;
+			case IF:
+			case ASSIGN:
+			case LEFT_CURLY:
+			case RETURN:
+			case USING:
+				break;
+			default:
+				unexpected(Token.Type.LEFT_ROUND, Token.Type.IF, Token.Type.ASSIGN,
+						Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		}
+		if(token == null)
+			unexpected(Token.Type.IF, Token.Type.ASSIGN, Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		switch(token.getType()) {
+			case IF:
+				{
+					Location triggerInitiator = token.getLocation();
+					next();
+					provision.setTrigger(new ProvisionDefinition.ConditionTrigger(triggerInitiator,
+							parseExpression()));
+					consume(Token.Type.RIGHT_ARROW);
+				}
+				break;
+			case ASSIGN:
+				{
+					Location triggerInitiator = token.getLocation();
+					next();
+					provision.setTrigger(new ProvisionDefinition.EquationTrigger(triggerInitiator,
+							parseExpression()));
+					consume(Token.Type.RIGHT_ARROW);
+				}
+				break;
+			case LEFT_CURLY:
+			case RETURN:
+			case USING:
+				break;
+			default:
+				unexpected(Token.Type.IF, Token.Type.ASSIGN,
+						Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		}
+		if(token == null)
+			unexpected(Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		switch(token.getType()) {
+			case LEFT_CURLY:
+				provision.setBody(new ProvisionDefinition.BlockBody(parseBlock()));
+				break;
+			case RETURN:
+				{
+					Location bodyInitiator = token.getLocation();
+					next();
+					provision.setBody(new ProvisionDefinition.ExpressionBody(bodyInitiator, parseExpression()));
+					consume(Token.Type.SEMICOLON);
+				}
+				break;
+			case USING:
+				{
+					Location bodyInitiator = token.getLocation();
+					next();
+					provision.setBody(new ProvisionDefinition.CallBody(bodyInitiator, parseExpression()));
+					consume(Token.Type.SEMICOLON);
+				}
+				break;
+			default:
+				unexpected(Token.Type.LEFT_CURLY, Token.Type.RETURN, Token.Type.USING);
+		}
+		return provision;
+	}
+
 	private Statement parseStatement() {
 		Expression expression = parseExpression();
 		consume(Token.Type.SEMICOLON);
@@ -824,6 +936,43 @@ public class Parser {
 	}
 
 	private Expression parseExpression() {
+		if(token == null)
+			unexpected("expression");
+		switch(token.getType()) {
+			case IF:
+			case UNLESS:
+				//TODO
+			case FOR:
+				//TODO
+			case FOREACH:
+				//TODO
+			case WHILE:
+			case UNTIL:
+				//TODO
+			case USE:
+				//TODO
+			case UNUSE:
+				//TODO
+			case USING:
+				//TODO
+			case LAMBDA:
+				//TODO
+			case BREAK:
+			case CONTINUE:
+				//TODO
+			case RETURN:
+				//TODO
+			default:
+				if(Parser.startsPIExpression(token.getType()))
+					return parsePIExpression();
+				else {
+					unexpected("expression");
+					return null;
+				}
+		}
+	}
+
+	private Expression parsePIExpression() {
 		//TODO
 		return null;
 	}
@@ -919,6 +1068,36 @@ public class Parser {
 			case USE:
 			case CONTINUE:
 			case UNUSE:
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private static boolean startsPIExpression(Token.Type type) {
+		switch(type) {
+			case MINUS:
+			case NOT:
+			case BYTE:
+			case SHORT:
+			case INT:
+			case LONG:
+			case FLOAT:
+			case DOUBLE:
+			case CHAR:
+			case STRING:
+			case NAME:
+			case PLUS:
+			case LEFT_ROUND:
+			case LOGICAL_NOT:
+			case BITWISE_NOT:
+			case INCREMENT:
+			case DECREMENT:
+			case LEFT_CURLY:
+			case LEFT_SQUARE:
+			case REQUIRE:
+			case NEW:
+			case PERCENT_LEFT_CURLY:
 				return true;
 			default:
 				return false;

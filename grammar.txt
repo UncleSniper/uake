@@ -58,7 +58,7 @@ if					::= ('if' | 'unless') expression 'then' statement
 						(('elif' | 'elunless') expression 'then' statement)*
 						('else' statement)?
 for					::= 'for' (for_variable | statement | ';') expression? ';' expression? 'do' statement
-for_variable		::= ('var' | 'const') type NAME ';'
+for_variable		::= variable
 foreach				::= 'foreach' type NAME 'in' expression 'do' statement
 while				::= ('while' | 'until') expression 'do' statement
 use					::= 'use' subscript subscript ';'

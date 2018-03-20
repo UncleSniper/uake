@@ -10,15 +10,23 @@ import org.unclesniper.uake.syntax.Statement;
 import org.unclesniper.uake.syntax.Parameter;
 import org.unclesniper.uake.syntax.Definition;
 import org.unclesniper.uake.syntax.Expression;
+import org.unclesniper.uake.syntax.IfConstruct;
 import org.unclesniper.uake.syntax.ModuleImport;
+import org.unclesniper.uake.syntax.ForConstruct;
+import org.unclesniper.uake.syntax.UseConstruct;
 import org.unclesniper.uake.syntax.QualifiedName;
 import org.unclesniper.uake.syntax.TypeSpecifier;
 import org.unclesniper.uake.syntax.Parameterized;
 import org.unclesniper.uake.syntax.ClassReference;
 import org.unclesniper.uake.syntax.TypeDefinition;
+import org.unclesniper.uake.syntax.WhileConstruct;
+import org.unclesniper.uake.syntax.UnuseConstruct;
+import org.unclesniper.uake.syntax.UsingConstruct;
 import org.unclesniper.uake.syntax.PropertyTrigger;
 import org.unclesniper.uake.syntax.BinaryClassName;
+import org.unclesniper.uake.syntax.LambdaConstruct;
 import org.unclesniper.uake.syntax.ModuleDefinition;
+import org.unclesniper.uake.syntax.ForeachConstruct;
 import org.unclesniper.uake.syntax.TemplateParameter;
 import org.unclesniper.uake.syntax.FunctionDefinition;
 import org.unclesniper.uake.syntax.VariableDefinition;
@@ -941,22 +949,22 @@ public class Parser {
 		switch(token.getType()) {
 			case IF:
 			case UNLESS:
-				//TODO
+				return parseIf();
 			case FOR:
-				//TODO
+				return parseFor();
 			case FOREACH:
-				//TODO
+				return parseForeach();
 			case WHILE:
 			case UNTIL:
-				//TODO
+				return parseWhile();
 			case USE:
-				//TODO
+				return parseUse();
 			case UNUSE:
-				//TODO
+				return parseUnuse();
 			case USING:
-				//TODO
+				return parseUsing();
 			case LAMBDA:
-				//TODO
+				return parseLambda();
 			case BREAK:
 			case CONTINUE:
 				//TODO
@@ -972,7 +980,203 @@ public class Parser {
 		}
 	}
 
+	private IfConstruct parseIf() {
+		if(token == null)
+			unexpected(Token.Type.IF, Token.Type.UNLESS);
+		Location initiator = token.getLocation();
+		boolean negated;
+		switch(token.getType()) {
+			case IF:
+				negated = false;
+				break;
+			case UNLESS:
+				negated = true;
+				break;
+			default:
+				unexpected(Token.Type.IF, Token.Type.UNLESS);
+				return null;
+		}
+		next();
+		Expression condition = parseExpression();
+		consume(Token.Type.THEN);
+		IfConstruct ifc = new IfConstruct(initiator, negated, condition, parseStatement());
+		for(;;) {
+			if(token == null)
+				return ifc;
+			switch(token.getType()) {
+				case ELIF:
+					negated = false;
+					break;
+				case ELUNLESS:
+					negated = true;
+					break;
+				case ELSE:
+					ifc.setElseLocation(token.getLocation());
+					next();
+					ifc.setElseBranch(parseStatement());
+					return ifc;
+				default:
+					return ifc;
+			}
+			initiator = token.getLocation();
+			next();
+			condition = parseExpression();
+			consume(Token.Type.THEN);
+			ifc.addElseIf(new IfConstruct.ElseIf(initiator, negated, condition, parseStatement()));
+		}
+	}
+
+	private ForConstruct parseFor() {
+		Location initiator = consume(Token.Type.FOR);
+		ForConstruct.Initialization initialization;
+		if(token == null)
+			unexpected("'var', 'const', statement or ';'");
+		switch(token.getType()) {
+			case VAR:
+			case CONST:
+				initialization = new ForConstruct.VariableInitialization(parseVariable());
+				break;
+			case SEMICOLON:
+				initialization = null;
+				next();
+				break;
+			default:
+				if(!Parser.startsExpression(token.getType()))
+					unexpected("'var', 'const', statement or ';'");
+				initialization = new ForConstruct.StatementInitialization(parseStatement());
+				break;
+		}
+		Expression condition;
+		if(token == null)
+			unexpected("expression or ';'");
+		if(token.getType() == Token.Type.SEMICOLON) {
+			condition = null;
+			next();
+		}
+		else if(Parser.startsExpression(token.getType())) {
+			condition = parseExpression();
+			consume(Token.Type.SEMICOLON);
+		}
+		else {
+			unexpected("expression or ';'");
+			return null;
+		}
+		Expression update;
+		if(token == null)
+			unexpected("expression or 'do'");
+		if(token.getType() == Token.Type.DO) {
+			update = null;
+			next();
+		}
+		else if(Parser.startsExpression(token.getType())) {
+			update = parseExpression();
+			consume(Token.Type.DO);
+		}
+		else {
+			unexpected("expression or 'do'");
+			return null;
+		}
+		return new ForConstruct(initiator, initialization, condition, update, parseStatement());
+	}
+
+	private ForeachConstruct parseForeach() {
+		Location initiator = consume(Token.Type.FOREACH);
+		TypeSpecifier elementType = parseType();
+		expect(Token.Type.NAME);
+		String bindName = token.getRawText();
+		Location bindLocation = token.getLocation();
+		next();
+		consume(Token.Type.IN);
+		Expression collection = parseExpression();
+		consume(Token.Type.DO);
+		return new ForeachConstruct(initiator, elementType, bindName, bindLocation, collection, parseStatement());
+	}
+
+	private WhileConstruct parseWhile() {
+		if(token == null)
+			unexpected(Token.Type.WHILE, Token.Type.UNTIL);
+		boolean negated;
+		switch(token.getType()) {
+			case WHILE:
+				negated = false;
+				break;
+			case UNTIL:
+				negated = true;
+				break;
+			default:
+				unexpected(Token.Type.WHILE, Token.Type.UNTIL);
+				return null;
+		}
+		Location initiator = token.getLocation();
+		next();
+		Expression condition = parseExpression();
+		consume(Token.Type.DO);
+		return new WhileConstruct(initiator, negated, condition, parseStatement());
+	}
+
+	private UseConstruct parseUse() {
+		Location initiator = consume(Token.Type.USE);
+		Expression property = parseSubscript();
+		Expression implementation = parseSubscript();
+		consume(Token.Type.SEMICOLON);
+		return new UseConstruct(initiator, property, implementation);
+	}
+
+	private UnuseConstruct parseUnuse() {
+		Location initiator = consume(Token.Type.UNUSE);
+		Expression property = parseExpression();
+		consume(Token.Type.SEMICOLON);
+		return new UnuseConstruct(initiator, property);
+	}
+
+	private UsingConstruct parseUsing() {
+		Location initiator = consume(Token.Type.USING);
+		Expression property = parseSubscript();
+		Expression implementation = parseSubscript();
+		consume(Token.Type.IN);
+		return new UsingConstruct(initiator, property, implementation, parseStatement());
+	}
+
+	private LambdaConstruct parseLambda() {
+		Location initiator = consume(Token.Type.LAMBDA);
+		TypeSpecifier returnType = parseType();
+		LambdaConstruct lambda = new LambdaConstruct(initiator, returnType);
+		if(token == null)
+			unexpected(Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.RIGHT_ARROW);
+		switch(token.getType()) {
+			case LEFT_ROUND:
+				parseParameters(lambda);
+				break;
+			case ASSIGN:
+			case RETURN:
+			case RIGHT_ARROW:
+				break;
+			default:
+				unexpected(Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.RIGHT_ARROW);
+				return null;
+		}
+		if(token == null)
+			unexpected(Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.RIGHT_ARROW);
+		switch(token.getType()) {
+			case ASSIGN:
+			case RETURN:
+			case RIGHT_ARROW:
+				next();
+				lambda.setBody(parseExpression());
+				break;
+			default:
+				unexpected(Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.RETURN, Token.Type.RIGHT_ARROW);
+				return null;
+		}
+		return lambda;
+	}
+
 	private Expression parsePIExpression() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseSubscript() {
 		//TODO
 		return null;
 	}

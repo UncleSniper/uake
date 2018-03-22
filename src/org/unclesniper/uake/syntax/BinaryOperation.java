@@ -1,0 +1,59 @@
+package org.unclesniper.uake.syntax;
+
+import org.unclesniper.uake.Location;
+
+public class BinaryOperation extends Expression {
+
+	public enum Function {
+		ASSIGN,
+		PLUS_ASSIGN,
+		MINUS_ASSIGN,
+		MULTIPLY_ASSIGN,
+		DIVIDE_ASSIGN,
+		MODULO_ASSIGN,
+		AND_ASSIGN,
+		XOR_ASSIGN,
+		OR_ASSIGN,
+		SHIFT_LEFT_ASSIGN,
+		SIGNED_SHIFT_RIGHT_ASSIGN,
+		UNSIGNED_SHIFT_RIGHT_ASSIGN
+	}
+
+	private Expression leftOperand;
+
+	private Function function;
+
+	private Expression rightOperand;
+
+	public BinaryOperation(Location location, Expression leftOperand, Function function, Expression rightOperand) {
+		super(location);
+		this.leftOperand = leftOperand;
+		this.function = function;
+		this.rightOperand = rightOperand;
+	}
+
+	public Expression getLeftOperand() {
+		return leftOperand;
+	}
+
+	public void setLeftOperand(Expression leftOperand) {
+		this.leftOperand = leftOperand;
+	}
+
+	public Function getFunction() {
+		return function;
+	}
+
+	public void setFunction(Function function) {
+		this.function = function;
+	}
+
+	public Expression getRightOperand() {
+		return rightOperand;
+	}
+
+	public void setRightOperand(Expression rightOperand) {
+		this.rightOperand = rightOperand;
+	}
+
+}

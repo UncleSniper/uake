@@ -13,12 +13,16 @@ public class BreakConstruct extends Expression {
 
 	private String levelSpec;
 
+	private Location levelLocation;
+
 	private Expression returnValue;
 
-	public BreakConstruct(Location initiator, Semantics semantics, String levelSpec, Expression returnValue) {
+	public BreakConstruct(Location initiator, Semantics semantics, String levelSpec, Location levelLocation,
+			Expression returnValue) {
 		super(initiator);
 		this.semantics = semantics;
 		this.levelSpec = levelSpec;
+		this.levelLocation = levelLocation;
 		this.returnValue = returnValue;
 	}
 
@@ -36,6 +40,14 @@ public class BreakConstruct extends Expression {
 
 	public void setLevelSpec(String levelSpec) {
 		this.levelSpec = levelSpec;
+	}
+
+	public Location getLevelLocation() {
+		return levelLocation;
+	}
+
+	public void setLevelLocation(Location levelLocation) {
+		this.levelLocation = levelLocation;
 	}
 
 	public Expression getReturnValue() {

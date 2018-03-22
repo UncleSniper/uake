@@ -65,9 +65,9 @@ use					::= 'use' subscript subscript ';'
 unuse				::= 'unuse' expression ';'
 using				::= 'using' subscript subscript 'in' statement
 lambda				::= '\' type param_spec? ('=' | 'return' | '->') expression
-break				::= 'break' (INT expression?)? ';'
-continue			::= 'continue' (INT expression?)? ';'
-return				::= 'return' expression? ';'
+break				::= 'break' (INT expression?)?
+continue			::= 'continue' (INT expression?)?
+return				::= 'return' expression?
 assignment			::= logical_or % assignment_oper
 assignment_oper		::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '^=' | '|=' | '<<=' | '>>=' | '>>>='
 logical_or			::= logical_and % '||'

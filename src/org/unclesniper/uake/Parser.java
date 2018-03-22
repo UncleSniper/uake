@@ -22,9 +22,11 @@ import org.unclesniper.uake.syntax.TypeDefinition;
 import org.unclesniper.uake.syntax.WhileConstruct;
 import org.unclesniper.uake.syntax.UnuseConstruct;
 import org.unclesniper.uake.syntax.UsingConstruct;
+import org.unclesniper.uake.syntax.BreakConstruct;
 import org.unclesniper.uake.syntax.PropertyTrigger;
 import org.unclesniper.uake.syntax.BinaryClassName;
 import org.unclesniper.uake.syntax.LambdaConstruct;
+import org.unclesniper.uake.syntax.ReturnConstruct;
 import org.unclesniper.uake.syntax.ModuleDefinition;
 import org.unclesniper.uake.syntax.ForeachConstruct;
 import org.unclesniper.uake.syntax.TemplateParameter;
@@ -967,9 +969,9 @@ public class Parser {
 				return parseLambda();
 			case BREAK:
 			case CONTINUE:
-				//TODO
+				return parseBreak();
 			case RETURN:
-				//TODO
+				return parseReturn();
 			default:
 				if(Parser.startsPIExpression(token.getType()))
 					return parsePIExpression();
@@ -1171,12 +1173,133 @@ public class Parser {
 		return lambda;
 	}
 
+	private BreakConstruct parseBreak() {
+		if(token == null)
+			unexpected(Token.Type.BREAK, Token.Type.CONTINUE);
+		BreakConstruct.Semantics semantics;
+		switch(token.getType()) {
+			case BREAK:
+				semantics = BreakConstruct.Semantics.BREAK;
+				break;
+			case CONTINUE:
+				semantics = BreakConstruct.Semantics.CONTINUE;
+				break;
+			default:
+				unexpected(Token.Type.BREAK, Token.Type.CONTINUE);
+				return null;
+		}
+		Location initiator = token.getLocation();
+		next();
+		if(token == null || token.getType() != Token.Type.INT)
+			return new BreakConstruct(initiator, semantics, null, null, null);
+		String levelSpec = token.getRawText();
+		Location levelLocation = token.getLocation();
+		next();
+		if(token == null || !Parser.startsExpression(token.getType()))
+			return new BreakConstruct(initiator, semantics, levelSpec, levelLocation, null);
+		return new BreakConstruct(initiator, semantics, levelSpec, levelLocation, parseExpression());
+	}
+
+	private ReturnConstruct parseReturn() {
+		Location initiator = consume(Token.Type.RETURN);
+		Expression returnValue;
+		if(token != null && Parser.startsExpression(token.getType()))
+			returnValue = parseExpression();
+		else
+			returnValue = null;
+		return new ReturnConstruct(initiator, returnValue);
+	}
+
 	private Expression parsePIExpression() {
+		return parseAssignment();
+	}
+
+	private Expression parseAssignment() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseLogicalOr() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseLogicalAnd() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseInstanceof() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseBitwiseOr() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseBitwiseXor() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseBitwiseAnd() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseContainment() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseEquality() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseRelational() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseShift() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseAdditive() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseMultiplicative() {
+		//TODO
+		return null;
+	}
+
+	private Expression parsePrefix() {
+		//TODO
+		return null;
+	}
+
+	private Expression parseJuxtaposition() {
 		//TODO
 		return null;
 	}
 
 	private Expression parseSubscript() {
+		//TODO
+		return null;
+	}
+
+	private Expression parsePostfix() {
+		//TODO
+		return null;
+	}
+
+	private Expression parsePrimary() {
 		//TODO
 		return null;
 	}

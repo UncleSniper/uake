@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 
-public class Block extends Syntax {
+public class Block extends Expression {
 
 	public static abstract class Item extends Syntax {
 

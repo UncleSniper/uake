@@ -10,23 +10,39 @@ import org.unclesniper.uake.syntax.Statement;
 import org.unclesniper.uake.syntax.Parameter;
 import org.unclesniper.uake.syntax.Definition;
 import org.unclesniper.uake.syntax.Expression;
+import org.unclesniper.uake.syntax.IntLiteral;
+import org.unclesniper.uake.syntax.MapLiteral;
 import org.unclesniper.uake.syntax.IfConstruct;
+import org.unclesniper.uake.syntax.ByteLiteral;
+import org.unclesniper.uake.syntax.LongLiteral;
+import org.unclesniper.uake.syntax.CharLiteral;
+import org.unclesniper.uake.syntax.ListLiteral;
 import org.unclesniper.uake.syntax.ModuleImport;
 import org.unclesniper.uake.syntax.ForConstruct;
 import org.unclesniper.uake.syntax.UseConstruct;
+import org.unclesniper.uake.syntax.MemberAccess;
+import org.unclesniper.uake.syntax.ShortLiteral;
+import org.unclesniper.uake.syntax.FloatLiteral;
+import org.unclesniper.uake.syntax.NewConstruct;
 import org.unclesniper.uake.syntax.QualifiedName;
 import org.unclesniper.uake.syntax.TypeSpecifier;
 import org.unclesniper.uake.syntax.Parameterized;
+import org.unclesniper.uake.syntax.Juxtaposition;
+import org.unclesniper.uake.syntax.NameReference;
+import org.unclesniper.uake.syntax.DoubleLiteral;
+import org.unclesniper.uake.syntax.StringLiteral;
 import org.unclesniper.uake.syntax.ClassReference;
 import org.unclesniper.uake.syntax.TypeDefinition;
 import org.unclesniper.uake.syntax.WhileConstruct;
 import org.unclesniper.uake.syntax.UnuseConstruct;
 import org.unclesniper.uake.syntax.UsingConstruct;
 import org.unclesniper.uake.syntax.BreakConstruct;
+import org.unclesniper.uake.syntax.UnaryOperation;
 import org.unclesniper.uake.syntax.PropertyTrigger;
 import org.unclesniper.uake.syntax.BinaryClassName;
 import org.unclesniper.uake.syntax.LambdaConstruct;
 import org.unclesniper.uake.syntax.ReturnConstruct;
+import org.unclesniper.uake.syntax.BinaryOperation;
 import org.unclesniper.uake.syntax.ModuleDefinition;
 import org.unclesniper.uake.syntax.ForeachConstruct;
 import org.unclesniper.uake.syntax.TemplateParameter;
@@ -36,6 +52,7 @@ import org.unclesniper.uake.syntax.TemplateInvocation;
 import org.unclesniper.uake.syntax.QualifiedClassName;
 import org.unclesniper.uake.syntax.PropertyDefinition;
 import org.unclesniper.uake.syntax.ProvisionDefinition;
+import org.unclesniper.uake.syntax.InstanceofOperation;
 
 public class Parser {
 
@@ -1215,93 +1232,583 @@ public class Parser {
 	}
 
 	private Expression parseAssignment() {
-		//TODO
-		return null;
+		Expression leftOperand = parseLogicalOr();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			BinaryOperation.Function function;
+			switch(token.getType()) {
+				case ASSIGN:
+					function = BinaryOperation.Function.ASSIGN;
+					break;
+				case PLUS_ASSIGN:
+					function = BinaryOperation.Function.PLUS_ASSIGN;
+					break;
+				case MINUS_ASSIGN:
+					function = BinaryOperation.Function.MINUS_ASSIGN;
+					break;
+				case MULTIPLY_ASSIGN:
+					function = BinaryOperation.Function.MULTIPLY_ASSIGN;
+					break;
+				case DIVIDE_ASSIGN:
+					function = BinaryOperation.Function.DIVIDE_ASSIGN;
+					break;
+				case MODULO_ASSIGN:
+					function = BinaryOperation.Function.MODULO_ASSIGN;
+					break;
+				case AND_ASSIGN:
+					function = BinaryOperation.Function.AND_ASSIGN;
+					break;
+				case XOR_ASSIGN:
+					function = BinaryOperation.Function.XOR_ASSIGN;
+					break;
+				case OR_ASSIGN:
+					function = BinaryOperation.Function.OR_ASSIGN;
+					break;
+				case SHIFT_LEFT_ASSIGN:
+					function = BinaryOperation.Function.SHIFT_LEFT_ASSIGN;
+					break;
+				case SIGNED_SHIFT_RIGHT_ASSIGN:
+					function = BinaryOperation.Function.SIGNED_SHIFT_RIGHT_ASSIGN;
+					break;
+				case UNSIGNED_SHIFT_RIGHT_ASSIGN:
+					function = BinaryOperation.Function.UNSIGNED_SHIFT_RIGHT_ASSIGN;
+					break;
+				default:
+					return leftOperand;
+			}
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseLogicalOr();
+			leftOperand = new BinaryOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parseLogicalOr() {
-		//TODO
-		return null;
+		Expression leftOperand = parseLogicalAnd();
+		for(;;) {
+			if(token == null || token.getType() != Token.Type.LOGICAL_OR)
+				return leftOperand;
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseLogicalAnd();
+			leftOperand = new BinaryOperation(location,
+					leftOperand, BinaryOperation.Function.LOGICAL_OR, rightOperand);
+		}
 	}
 
 	private Expression parseLogicalAnd() {
-		//TODO
-		return null;
+		Expression leftOperand = parseInstanceof();
+		for(;;) {
+			if(token == null || token.getType() != Token.Type.LOGICAL_AND)
+				return leftOperand;
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseInstanceof();
+			leftOperand = new BinaryOperation(location,
+					leftOperand, BinaryOperation.Function.LOGICAL_AND, rightOperand);
+		}
 	}
 
 	private Expression parseInstanceof() {
-		//TODO
-		return null;
+		Expression leftOperand = parseBitwiseOr();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			InstanceofOperation.Function function;
+			switch(token.getType()) {
+				case IS:
+					function = InstanceofOperation.Function.IS;
+					break;
+				case AS:
+					function = InstanceofOperation.Function.AS;
+					break;
+				default:
+					return leftOperand;
+			}
+			Location location = token.getLocation();
+			next();
+			TypeSpecifier rightOperand = parseType();
+			leftOperand = new InstanceofOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parseBitwiseOr() {
-		//TODO
-		return null;
+		Expression leftOperand = parseBitwiseXor();
+		for(;;) {
+			if(token == null || token.getType() != Token.Type.BITWISE_OR)
+				return leftOperand;
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseBitwiseXor();
+			leftOperand = new BinaryOperation(location,
+					leftOperand, BinaryOperation.Function.BITWISE_OR, rightOperand);
+		}
 	}
 
 	private Expression parseBitwiseXor() {
-		//TODO
-		return null;
+		Expression leftOperand = parseBitwiseAnd();
+		for(;;) {
+			if(token == null || token.getType() != Token.Type.BITWISE_XOR)
+				return leftOperand;
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseBitwiseAnd();
+			leftOperand = new BinaryOperation(location,
+					leftOperand, BinaryOperation.Function.BITWISE_XOR, rightOperand);
+		}
 	}
 
 	private Expression parseBitwiseAnd() {
-		//TODO
-		return null;
+		Expression leftOperand = parseContainment();
+		for(;;) {
+			if(token == null || token.getType() != Token.Type.BITWISE_AND)
+				return leftOperand;
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseContainment();
+			leftOperand = new BinaryOperation(location,
+					leftOperand, BinaryOperation.Function.BITWISE_AND, rightOperand);
+		}
 	}
 
 	private Expression parseContainment() {
-		//TODO
-		return null;
+		Expression leftOperand = parseEquality();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			BinaryOperation.Function function;
+			Location location = token.getLocation();
+			switch(token.getType()) {
+				case IN:
+					function = BinaryOperation.Function.IN;
+					break;
+				case NOT:
+					function = BinaryOperation.Function.NOT_IN;
+					next();
+					expect(Token.Type.IN);
+					break;
+				default:
+					return leftOperand;
+			}
+			next();
+			Expression rightOperand = parseEquality();
+			leftOperand = new BinaryOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parseEquality() {
-		//TODO
-		return null;
+		Expression leftOperand = parseRelational();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			BinaryOperation.Function function;
+			switch(token.getType()) {
+				case EQUAL:
+					function = BinaryOperation.Function.EQUAL;
+					break;
+				case UNEQUAL:
+					function = BinaryOperation.Function.UNEQUAL;
+					break;
+				default:
+					return leftOperand;
+			}
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseRelational();
+			leftOperand = new BinaryOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parseRelational() {
-		//TODO
-		return null;
+		Expression leftOperand = parseShift();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			BinaryOperation.Function function;
+			switch(token.getType()) {
+				case LESS:
+					function = BinaryOperation.Function.LESS;
+					break;
+				case LESS_EQUAL:
+					function = BinaryOperation.Function.LESS_EQUAL;
+					break;
+				case GREATER:
+					function = BinaryOperation.Function.GREATER;
+					break;
+				case GREATER_EQUAL:
+					function = BinaryOperation.Function.GREATER_EQUAL;
+					break;
+				default:
+					return leftOperand;
+			}
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseShift();
+			leftOperand = new BinaryOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parseShift() {
-		//TODO
-		return null;
+		Expression leftOperand = parseAdditive();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			BinaryOperation.Function function;
+			switch(token.getType()) {
+				case SHIFT_LEFT:
+					function = BinaryOperation.Function.SHIFT_LEFT;
+					break;
+				case SIGNED_SHIFT_RIGHT:
+					function = BinaryOperation.Function.SIGNED_SHIFT_RIGHT;
+					break;
+				case UNSIGNED_SHIFT_RIGHT:
+					function = BinaryOperation.Function.UNSIGNED_SHIFT_RIGHT;
+					break;
+				default:
+					return leftOperand;
+			}
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseAdditive();
+			leftOperand = new BinaryOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parseAdditive() {
-		//TODO
-		return null;
+		Expression leftOperand = parseMultiplicative();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			BinaryOperation.Function function;
+			switch(token.getType()) {
+				case PLUS:
+					function = BinaryOperation.Function.PLUS;
+					break;
+				case MINUS:
+					function = BinaryOperation.Function.MINUS;
+					break;
+				default:
+					return leftOperand;
+			}
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parseMultiplicative();
+			leftOperand = new BinaryOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parseMultiplicative() {
-		//TODO
-		return null;
+		Expression leftOperand = parsePrefix();
+		for(;;) {
+			if(token == null)
+				return leftOperand;
+			BinaryOperation.Function function;
+			switch(token.getType()) {
+				case MULTIPLY:
+					function = BinaryOperation.Function.MULTIPLY;
+					break;
+				case DIVIDE:
+					function = BinaryOperation.Function.DIVIDE;
+					break;
+				case MODULO:
+					function = BinaryOperation.Function.MODULO;
+					break;
+				default:
+					return leftOperand;
+			}
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parsePrefix();
+			leftOperand = new BinaryOperation(location, leftOperand, function, rightOperand);
+		}
 	}
 
 	private Expression parsePrefix() {
-		//TODO
-		return null;
+		if(token == null)
+			return parseJuxtaposition();
+		UnaryOperation.Function function;
+		switch(token.getType()) {
+			case INCREMENT:
+				function = UnaryOperation.Function.PRE_INCREMENT;
+				break;
+			case DECREMENT:
+				function = UnaryOperation.Function.PRE_DECREMENT;
+				break;
+			case PLUS:
+				function = UnaryOperation.Function.POSITIVE;
+				break;
+			case MINUS:
+				function = UnaryOperation.Function.NEGATIVE;
+				break;
+			case BITWISE_NOT:
+				function = UnaryOperation.Function.BITWISE_NOT;
+				break;
+			case LOGICAL_NOT:
+			case NOT:
+				function = UnaryOperation.Function.LOGICAL_NOT;
+				break;
+			default:
+				return parseJuxtaposition();
+		}
+		Location location = token.getLocation();
+		next();
+		return new UnaryOperation(location, function, parsePrefix());
 	}
 
 	private Expression parseJuxtaposition() {
-		//TODO
-		return null;
+		Juxtaposition juxta;
+		if(token != null && token.getType() == Token.Type.REQUIRE) {
+			juxta = new Juxtaposition(token.getLocation(), token.getLocation());
+			next();
+			juxta.addPiece(parseSubscript());
+		}
+		else {
+			Expression piece = parseSubscript();
+			if(token == null || !Parser.startsSubscript(token.getType()))
+				return piece;
+			juxta = new Juxtaposition(piece.getLocation(), null);
+			juxta.addPiece(piece);
+		}
+		while(token != null && Parser.startsSubscript(token.getType()))
+			juxta.addPiece(parseSubscript());
+		return juxta;
 	}
 
 	private Expression parseSubscript() {
-		//TODO
-		return null;
+		Expression leftOperand = parsePostfix();
+		for(;;) {
+			if(token == null || token.getType() != Token.Type.AT)
+				return leftOperand;
+			Location location = token.getLocation();
+			next();
+			Expression rightOperand = parsePostfix();
+			leftOperand = new BinaryOperation(location,
+					leftOperand, BinaryOperation.Function.SUBSCRIPT, rightOperand);
+		}
 	}
 
 	private Expression parsePostfix() {
-		//TODO
-		return null;
+		Expression operand = parsePrimary();
+		while(token != null) {
+			switch(token.getType()) {
+				case INCREMENT:
+					operand = new UnaryOperation(token.getLocation(),
+							UnaryOperation.Function.POST_INCREMENT, operand);
+					next();
+					break;
+				case DECREMENT:
+					operand = new UnaryOperation(token.getLocation(),
+							UnaryOperation.Function.POST_DECREMENT, operand);
+					next();
+					break;
+				case DOT:
+					operand = parseMemberAccess(operand, MemberAccess.Semantics.FIELD);
+					break;
+				case COLON:
+					operand = parseMemberAccess(operand, MemberAccess.Semantics.MODULE_MEMBER);
+					break;
+				default:
+					return operand;
+			}
+		}
+		return operand;
+	}
+
+	private MemberAccess parseMemberAccess(Expression operand, MemberAccess.Semantics semantics) {
+		Location location = token.getLocation();
+		next();
+		expect(Token.Type.NAME);
+		MemberAccess access = new MemberAccess(location, operand, semantics,
+				token.getRawText(), token.getLocation());
+		next();
+		return access;
 	}
 
 	private Expression parsePrimary() {
-		//TODO
-		return null;
+		if(token == null)
+			unexpected("primary expression");
+		switch(token.getType()) {
+			case NAME:
+				{
+					NameReference name = new NameReference(token.getLocation(), token.getRawText());
+					next();
+					return name;
+				}
+			case BYTE:
+				{
+					ByteLiteral literal = new ByteLiteral(token.getLocation(), token.getRawText());
+					next();
+					return literal;
+				}
+			case SHORT:
+				{
+					ShortLiteral literal = new ShortLiteral(token.getLocation(), token.getRawText());
+					next();
+					return literal;
+				}
+			case INT:
+				{
+					IntLiteral literal = new IntLiteral(token.getLocation(), token.getRawText());
+					next();
+					return literal;
+				}
+			case LONG:
+				{
+					LongLiteral literal = new LongLiteral(token.getLocation(), token.getRawText());
+					next();
+					return literal;
+				}
+			case FLOAT:
+				{
+					FloatLiteral literal = new FloatLiteral(token.getLocation(), token.getRawText());
+					next();
+					return literal;
+				}
+			case DOUBLE:
+				{
+					DoubleLiteral literal = new DoubleLiteral(token.getLocation(), token.getRawText());
+					next();
+					return literal;
+				}
+			case CHAR:
+				{
+					CharLiteral literal = new CharLiteral(token.getLocation(), token.getRawText().charAt(0));
+					next();
+					return literal;
+				}
+			case STRING:
+				{
+					StringLiteral literal = new StringLiteral(token.getLocation(), token.getRawText());
+					next();
+					return literal;
+				}
+			case LEFT_ROUND:
+				{
+					next();
+					Expression expression = parseExpression();
+					consume(Token.Type.RIGHT_ROUND);
+					return expression;
+				}
+			case LEFT_CURLY:
+				return parseBlock();
+			case LEFT_SQUARE:
+				{
+					ListLiteral list = new ListLiteral(token.getLocation());
+					next();
+					if(token == null)
+						unexpected("expression or ']'");
+					if(token.getType() != Token.Type.RIGHT_SQUARE) {
+						if(!Parser.startsExpression(token.getType()))
+							unexpected("expression or ']'");
+						for(;;) {
+							list.addElement(parseExpression());
+							if(token == null)
+								unexpected("',' or ']'");
+							if(token.getType() == Token.Type.RIGHT_SQUARE)
+								break;
+							if(token.getType() != Token.Type.COMMA)
+								unexpected("',' or ']'");
+							next();
+						}
+					}
+					next();
+					return list;
+				}
+			case PERCENT_LEFT_CURLY:
+				{
+					MapLiteral map = new MapLiteral(token.getLocation());
+					next();
+					if(token == null)
+						unexpected("expression or '}'");
+					if(token.getType() != Token.Type.RIGHT_CURLY) {
+						if(!Parser.startsExpression(token.getType()))
+							unexpected("expression or '}'");
+						for(;;) {
+							map.addBinding(parseMapBinding());
+							if(token == null)
+								unexpected("',' or '}'");
+							if(token.getType() == Token.Type.RIGHT_CURLY)
+								break;
+							if(token.getType() != Token.Type.COMMA)
+								unexpected("',' or '}'");
+							next();
+						}
+					}
+					next();
+					return map;
+				}
+			case NEW:
+				return parseNew();
+			default:
+				unexpected("primary expression");
+				return null;
+		}
+	}
+
+	private MapLiteral.Binding parseMapBinding() {
+		Expression key = parseExpression();
+		Location location = consume(Token.Type.RIGHT_ARROW);
+		Expression value = parseExpression();
+		return new MapLiteral.Binding(key, location, value);
+	}
+
+	private NewConstruct parseNew() {
+		Location initiator = consume(Token.Type.NEW);
+		NewConstruct newc = new NewConstruct(initiator, parseType());
+		if(token == null)
+			unexpected("'(' or '{'");
+		switch(token.getType()) {
+			case LEFT_ROUND:
+				next();
+				if(token == null)
+					unexpected("expression or ')'");
+				if(token.getType() != Token.Type.RIGHT_ROUND) {
+					if(!Parser.startsExpression(token.getType()))
+						unexpected("expression or ')'");
+					for(;;) {
+						newc.addArgument(parseExpression());
+						if(token == null)
+							unexpected("',' or ')'");
+						if(token.getType() == Token.Type.RIGHT_ROUND)
+							break;
+						if(token.getType() != Token.Type.COMMA)
+							unexpected("',' or ')'");
+						next();
+					}
+				}
+				next();
+				expect(Token.Type.LEFT_CURLY);
+				break;
+			case LEFT_CURLY:
+				break;
+			default:
+				unexpected("'(' or '{'");
+				return null;
+		}
+		next();
+		if(token == null)
+			unexpected("field initializer or '}'");
+		if(token.getType() != Token.Type.RIGHT_CURLY) {
+			if(token.getType() != Token.Type.NAME)
+				unexpected("field initializer or '}'");
+			for(;;) {
+				Location fieldLocation = token.getLocation();
+				String fieldName = token.getRawText();
+				next();
+				consume(Token.Type.ASSIGN);
+				newc.addField(new NewConstruct.FieldInitializer(fieldLocation, fieldName, parseExpression()));
+				if(token == null)
+					unexpected("',' or '}'");
+				if(token.getType() == Token.Type.RIGHT_CURLY)
+					break;
+				if(token.getType() != Token.Type.COMMA)
+					unexpected("',' or '}'");
+				next();
+			}
+		}
+		next();
+		return newc;
 	}
 
 	private static boolean startsHeader(Token.Type type) {
@@ -1425,6 +1932,28 @@ public class Parser {
 			case REQUIRE:
 			case NEW:
 			case PERCENT_LEFT_CURLY:
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	private static boolean startsSubscript(Token.Type type) {
+		switch(type) {
+			case NAME:
+			case BYTE:
+			case SHORT:
+			case INT:
+			case LONG:
+			case FLOAT:
+			case DOUBLE:
+			case CHAR:
+			case STRING:
+			case LEFT_ROUND:
+			case LEFT_SQUARE:
+			case LEFT_CURLY:
+			case PERCENT_LEFT_CURLY:
+			case NEW:
 				return true;
 			default:
 				return false;

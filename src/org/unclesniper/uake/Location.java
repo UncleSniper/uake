@@ -2,6 +2,8 @@ package org.unclesniper.uake;
 
 public final class Location {
 
+	public static final Location UNKNOWN = new Location(null, 0, 0);
+
 	private final String file;
 
 	private final int line;

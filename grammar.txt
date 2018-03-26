@@ -99,7 +99,7 @@ primary				::= atom
 list_literal		::= '[' (expression % ',')? ']'
 map_literal			::= '%{' (map_binding % ',')? '}'
 map_binding			::= expression '->' expression
-new					::= 'new' type '{' (field_init % ',')? '}'
+new					::= 'new' type ('(' (expression % ',')? ')')? '{' (field_init % ',')? '}'
 field_init			::= NAME '=' expression
 atom				::= NAME
 						| BYTE

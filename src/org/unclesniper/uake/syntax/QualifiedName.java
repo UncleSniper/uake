@@ -1,6 +1,5 @@
 package org.unclesniper.uake.syntax;
 
-import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 
@@ -35,9 +34,18 @@ public class QualifiedName {
 
 	}
 
-	private final List<Segment> segments = new LinkedList<Segment>();
+	private final LinkedList<Segment> segments = new LinkedList<Segment>();
 
 	public QualifiedName() {}
+
+	public QualifiedName(QualifiedName head, String tail, Location location) {
+		if(head != null) {
+			for(Segment segment : head.getSegments())
+				segments.add(new Segment(segment.getLocation(), segment.getName()));
+		}
+		if(tail != null)
+			segments.add(new Segment(location == null ? Location.UNKNOWN : location, tail));
+	}
 
 	public Iterable<Segment> getSegments() {
 		return segments;
@@ -48,8 +56,25 @@ public class QualifiedName {
 			segments.add(segment);
 	}
 
+	public Segment getTail() {
+		return segments.isEmpty() ? null : segments.getLast();
+	}
+
 	public Location getLocation() {
 		return segments.isEmpty() ? null : segments.get(0).location;
+	}
+
+	public String toString(char delimiter) {
+		StringBuilder builder = new StringBuilder();
+		boolean first = true;
+		for(Segment segment : segments) {
+			if(first)
+				first = false;
+			else
+				builder.append(delimiter);
+			builder.append(segment.getName());
+		}
+		return builder.toString();
 	}
 
 }

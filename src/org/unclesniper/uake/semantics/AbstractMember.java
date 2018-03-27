@@ -1,6 +1,7 @@
 package org.unclesniper.uake.semantics;
 
 import java.util.LinkedList;
+import org.unclesniper.uake.Location;
 import org.unclesniper.uake.syntax.QualifiedName;
 
 public abstract class AbstractMember implements UakeMember {
@@ -9,8 +10,11 @@ public abstract class AbstractMember implements UakeMember {
 
 	private final QualifiedName qualifiedName;
 
-	public AbstractMember(QualifiedName qualifiedName) {
+	private Location definitionLocation;
+
+	public AbstractMember(QualifiedName qualifiedName, Location definitionLocation) {
 		this.qualifiedName = qualifiedName;
+		this.definitionLocation = definitionLocation;
 	}
 
 	public String getUnqualifiedName() {
@@ -20,6 +24,14 @@ public abstract class AbstractMember implements UakeMember {
 
 	public QualifiedName getQualifiedName() {
 		return qualifiedName;
+	}
+
+	public Location getDefinitionLocation() {
+		return definitionLocation;
+	}
+
+	public void setDefinitionLocation(Location definitionLocation) {
+		this.definitionLocation = definitionLocation;
 	}
 
 	public Iterable<UakeType> getTemplateArguments() {

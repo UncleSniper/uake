@@ -108,8 +108,8 @@ public class UakeModule extends AbstractMember {
 
 	private UakeModule parent;
 
-	public UakeModule(QualifiedName qualifiedName, UakeModule parent) {
-		super(qualifiedName);
+	public UakeModule(QualifiedName qualifiedName, Location definitionLocation, UakeModule parent) {
+		super(qualifiedName, definitionLocation);
 		this.parent = parent;
 	}
 
@@ -166,7 +166,7 @@ public class UakeModule extends AbstractMember {
 				if(nextModules.isEmpty()) {
 					UakeModule first = modules.getFirst();
 					QualifiedName qname = new QualifiedName(first.getQualifiedName(), prevName, null);
-					UakeModule inner = new UakeModule(qname, first);
+					UakeModule inner = new UakeModule(qname, Location.UNKNOWN, first);
 					first.put(inner);
 					nextModules.addMember(inner);
 				}

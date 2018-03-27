@@ -2,6 +2,7 @@ package org.unclesniper.uake.semantics;
 
 import java.util.List;
 import java.util.LinkedList;
+import org.unclesniper.uake.Location;
 import org.unclesniper.uake.syntax.QualifiedName;
 
 public class JavaTypeTemplate extends AbstractTemplate implements UakeTypeTemplate {
@@ -11,7 +12,7 @@ public class JavaTypeTemplate extends AbstractTemplate implements UakeTypeTempla
 		private final JavaTypeTemplate backingTemplate;
 
 		public Instance(JavaTypeTemplate backingTemplate) {
-			super(backingTemplate.getQualifiedName());
+			super(backingTemplate.getQualifiedName(), backingTemplate.getDefinitionLocation());
 			this.backingTemplate = backingTemplate;
 		}
 
@@ -37,8 +38,8 @@ public class JavaTypeTemplate extends AbstractTemplate implements UakeTypeTempla
 
 	private final List<UakeTypeEmitter> directSupertypes = new LinkedList<UakeTypeEmitter>();
 
-	public JavaTypeTemplate(QualifiedName qualifiedName, Class<?> backingClass) {
-		super(qualifiedName);
+	public JavaTypeTemplate(QualifiedName qualifiedName, Location definitionLocation, Class<?> backingClass) {
+		super(qualifiedName, definitionLocation);
 		this.backingClass = backingClass;
 	}
 

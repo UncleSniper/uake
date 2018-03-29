@@ -2,6 +2,8 @@ package org.unclesniper.uake.semantics;
 
 import java.util.List;
 import java.util.LinkedList;
+import org.unclesniper.uake.Location;
+import org.unclesniper.uake.TemplateArityException;
 
 public class TypeUtils {
 
@@ -28,6 +30,15 @@ public class TypeUtils {
 		for(UakeType argument : member.getTemplateArguments())
 			arguments.add(argument);
 		return arguments.toArray(TypeUtils.UAKE_TYPE_ARRAY_TEMPLATE);
+	}
+
+	public static void checkTemplateArgumentsAgainstArity(UakeTemplate emitter, UakeType[] templateArguments,
+			Location emissionLocation) {
+		int min = emitter.getMinTemplateArity(), max = emitter.getMaxTemplateArity();
+		if(templateArguments.length < min)
+			throw new TemplateArityException(emitter, emissionLocation, min, templateArguments.length);
+		if(max >= 0 && templateArguments.length > max)
+			throw new TemplateArityException(emitter, emissionLocation, max, templateArguments.length);
 	}
 
 }

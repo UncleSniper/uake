@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class PropertyDefinition extends AbstractTemplate implements Parameterized {
 
@@ -111,6 +112,10 @@ public class PropertyDefinition extends AbstractTemplate implements Parameterize
 
 	public boolean isElliptic() {
 		return parameters != null && !parameters.isEmpty() && parameters.getLast().isElliptic();
+	}
+
+	public void createElements(CompilationContext cctx) {
+		//TODO
 	}
 
 }

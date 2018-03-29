@@ -28,6 +28,10 @@ public final class Location {
 		return column;
 	}
 
+	public boolean isUnknown() {
+		return (file == null || file.length() == 0) && line <= 0;
+	}
+
 	public String toString() {
 		String f;
 		if(file == null || file.length() == 0) {

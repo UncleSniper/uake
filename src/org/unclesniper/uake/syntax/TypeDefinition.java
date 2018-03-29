@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class TypeDefinition extends AbstractTemplate {
 
@@ -116,6 +117,10 @@ public class TypeDefinition extends AbstractTemplate {
 
 	public void setBody(Body body) {
 		this.body = body;
+	}
+
+	public void createElements(CompilationContext cctx) {
+		//TODO
 	}
 
 }

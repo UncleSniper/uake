@@ -2,6 +2,7 @@ package org.unclesniper.uake.syntax;
 
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class ProvisionDefinition extends AbstractTemplate implements Parameterized {
 
@@ -166,6 +167,10 @@ public class ProvisionDefinition extends AbstractTemplate implements Parameteriz
 
 	public void setBody(Body body) {
 		this.body = body;
+	}
+
+	public void createElements(CompilationContext cctx) {
+		//TODO
 	}
 
 }

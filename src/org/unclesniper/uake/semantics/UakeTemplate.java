@@ -6,4 +6,10 @@ public interface UakeTemplate extends UakeMember {
 
 	Iterable<TemplateParameter> getTemplateParameters();
 
+	boolean isEllipticTemplate();
+
+	int getMinTemplateArity();
+
+	int getMaxTemplateArity();
+
 }

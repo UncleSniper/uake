@@ -1,6 +1,6 @@
 package org.unclesniper.uake.semantics;
 
-public interface UakeType extends UakeMember {
+public interface UakeType extends UakeMember, UakeTypeEmitter {
 
 	Class<?> getBackingClass();
 

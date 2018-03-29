@@ -1,18 +1,16 @@
 package org.unclesniper.uake.semantics;
 
-import java.util.List;
-import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.syntax.QualifiedName;
 
-public class JavaTypeTemplate extends AbstractTemplate implements UakeTypeTemplate {
+public class JavaTypeTemplate extends AbstractTypeTemplate {
 
-	public static class Instance extends AbstractTemplateInstance implements UakeType {
+	public static class Instance extends AbstractTypeTemplateInstance {
 
 		private final JavaTypeTemplate backingTemplate;
 
-		public Instance(JavaTypeTemplate backingTemplate) {
-			super(backingTemplate.getQualifiedName(), backingTemplate.getDefinitionLocation());
+		public Instance(JavaTypeTemplate backingTemplate, Location emissionLocation) {
+			super(backingTemplate.getQualifiedName(), backingTemplate.getDefinitionLocation(), emissionLocation);
 			this.backingTemplate = backingTemplate;
 		}
 
@@ -24,19 +22,9 @@ public class JavaTypeTemplate extends AbstractTemplate implements UakeTypeTempla
 			return backingTemplate.getBackingClass();
 		}
 
-		public UakeModule.Group<UakeType> getDirectSupertypes() {
-			UakeType[] templateArguments = TypeUtils.getTemplateArgumentsAsArray(this);
-			UakeModule.Group<UakeType> supertypes = new UakeModule.Group<UakeType>();
-			for(UakeTypeEmitter supertype : backingTemplate.directSupertypes)
-				supertypes.addMember(supertype.emitType(templateArguments));
-			return supertypes;
-		}
-
 	}
 
 	private Class<?> backingClass;
-
-	private final List<UakeTypeEmitter> directSupertypes = new LinkedList<UakeTypeEmitter>();
 
 	public JavaTypeTemplate(QualifiedName qualifiedName, Location definitionLocation, Class<?> backingClass) {
 		super(qualifiedName, definitionLocation);
@@ -51,18 +39,12 @@ public class JavaTypeTemplate extends AbstractTemplate implements UakeTypeTempla
 		this.backingClass = backingClass;
 	}
 
-	public Iterable<UakeTypeEmitter> getDirectSupertypes() {
-		return directSupertypes;
-	}
-
-	public void addDirectSupertype(UakeTypeEmitter supertype) {
-		if(supertype != null)
-			directSupertypes.add(supertype);
-	}
-
-	public UakeType emitType(UakeType... templateArguments) {
-		//TODO
-		return null;
+	public UakeType emitType(UakeType[] templateArguments, Location emissionLocation) {
+		TypeUtils.checkTemplateArgumentsAgainstArity(this, templateArguments, emissionLocation);
+		Instance instance = new Instance(this, emissionLocation);
+		for(int i = 0; i < templateArguments.length; ++i)
+			instance.addTemplateArgument(templateArguments[i]);
+		return instance;
 	}
 
 }

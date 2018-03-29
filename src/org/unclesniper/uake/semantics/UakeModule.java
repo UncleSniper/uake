@@ -164,11 +164,12 @@ public class UakeModule extends AbstractMember {
 				for(UakeModule module : modules)
 					module.gete(prevName).map(UakeModule.MODULE_TRANSFORM, nextModules);
 				if(nextModules.isEmpty()) {
-					UakeModule first = modules.getFirst();
-					QualifiedName qname = new QualifiedName(first.getQualifiedName(), prevName, null);
-					UakeModule inner = new UakeModule(qname, Location.UNKNOWN, first);
-					first.put(inner);
-					nextModules.addMember(inner);
+					for(UakeModule module : modules) {
+						QualifiedName qname = new QualifiedName(module.getQualifiedName(), prevName, prevLocation);
+						UakeModule inner = new UakeModule(qname, Location.UNKNOWN, module);
+						module.put(inner);
+						nextModules.addMember(inner);
+					}
 				}
 				modules = nextModules;
 			}

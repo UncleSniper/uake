@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class VariableDefinition extends Definition {
 
@@ -62,6 +63,10 @@ public class VariableDefinition extends Definition {
 
 	public void setInitializer(Expression initializer) {
 		this.initializer = initializer;
+	}
+
+	public void createElements(CompilationContext cctx) {
+		//TODO
 	}
 
 }

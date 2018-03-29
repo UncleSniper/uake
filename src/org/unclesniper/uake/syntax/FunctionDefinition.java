@@ -3,6 +3,8 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.semantics.UakeModule;
 
 public class FunctionDefinition extends AbstractTemplate implements Parameterized {
 
@@ -11,6 +13,8 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 		public Body(Location location) {
 			super(location);
 		}
+
+		public abstract void createElement(FunctionDefinition definition, CompilationContext cctx);
 
 	}
 
@@ -31,6 +35,20 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 				triggers.add(trigger);
 		}
 
+		public abstract Expression getExpression();
+
+		public void createElement(FunctionDefinition definition, CompilationContext cctx) {
+			UakeModule targetModule = cctx.getTargetModule();
+			QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(),
+					definition.name, definition.nameLocation);
+			if(definition.isTemplate()) {
+				//TODO
+			}
+			else {
+				//TODO
+			}
+		}
+
 	}
 
 	public static class BlockBody extends ScriptBody {
@@ -43,6 +61,10 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 		}
 
 		public Block getBlock() {
+			return block;
+		}
+
+		public Expression getExpression() {
 			return block;
 		}
 
@@ -96,6 +118,10 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 		public boolean isStaticMethod() {
 			return staticMethod;
+		}
+
+		public void createElement(FunctionDefinition definition, CompilationContext cctx) {
+			//TODO
 		}
 
 	}
@@ -160,6 +186,10 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 	public void setBody(Body body) {
 		this.body = body;
+	}
+
+	public void createElements(CompilationContext cctx) {
+		body.createElement(this, cctx);
 	}
 
 }

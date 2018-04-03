@@ -2,6 +2,8 @@ package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.semantics.UakeModule;
+import org.unclesniper.uake.semantics.UakeVariable;
 
 public class VariableDefinition extends Definition {
 
@@ -66,7 +68,11 @@ public class VariableDefinition extends Definition {
 	}
 
 	public void createElements(CompilationContext cctx) {
-		//TODO
+		UakeModule targetModule = cctx.getTargetModule();
+		QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(), name, nameLocation);
+		UakeVariable variable = new UakeVariable(qname, getLocation(), null, constant);
+		targetModule.put(variable);
+		cctx.putVariableForDefinition(this, variable);
 	}
 
 }

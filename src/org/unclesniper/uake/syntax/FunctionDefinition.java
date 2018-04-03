@@ -5,6 +5,10 @@ import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.CompilationContext;
 import org.unclesniper.uake.semantics.UakeModule;
+import org.unclesniper.uake.semantics.SoftFunction;
+import org.unclesniper.uake.semantics.JavaFunction;
+import org.unclesniper.uake.semantics.SoftFunctionTemplate;
+import org.unclesniper.uake.semantics.JavaFunctionTemplate;
 
 public class FunctionDefinition extends AbstractTemplate implements Parameterized {
 
@@ -42,10 +46,21 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 			QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(),
 					definition.name, definition.nameLocation);
 			if(definition.isTemplate()) {
-				//TODO
+				SoftFunctionTemplate function = new SoftFunctionTemplate(qname, definition.getLocation(), null);
+				for(TemplateParameter tparam : definition.getTemplateParameters())
+					function.addTemplateParameter(tparam);
+				for(Parameter param : definition.getParameters())
+					function.addParameter(new SoftFunctionTemplate.SoftParameterTemplate(param.getName(),
+							null, param.isElliptic()));
+				targetModule.put(function);
+				cctx.putFunctionTemplateForDefinition(definition, function);
 			}
 			else {
-				//TODO
+				SoftFunction function = new SoftFunction(qname, definition.getLocation(), null);
+				for(Parameter param : definition.getParameters())
+					function.addParameter(new SoftFunction.SoftParameter(param.getName(), null, param.isElliptic()));
+				targetModule.put(function);
+				cctx.putFunctionForDefinition(definition, function);
 			}
 		}
 
@@ -121,7 +136,26 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 		}
 
 		public void createElement(FunctionDefinition definition, CompilationContext cctx) {
-			//TODO
+			UakeModule targetModule = cctx.getTargetModule();
+			QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(),
+					definition.name, definition.nameLocation);
+			if(definition.isTemplate()) {
+				JavaFunctionTemplate function = new JavaFunctionTemplate(qname, definition.getLocation(), null);
+				for(TemplateParameter tparam : definition.getTemplateParameters())
+					function.addTemplateParameter(tparam);
+				for(Parameter param : definition.getParameters())
+					function.addParameter(new JavaFunctionTemplate.JavaParameterTemplate(param.getName(),
+							null, param.isElliptic()));
+				targetModule.put(function);
+				cctx.putFunctionTemplateForDefinition(definition, function);
+			}
+			else {
+				JavaFunction function = new JavaFunction(qname, definition.getLocation(), null, null);
+				for(Parameter param : definition.getParameters())
+					function.addParameter(new JavaFunction.JavaParameter(param.getName(), null, param.isElliptic()));
+				targetModule.put(function);
+				cctx.putFunctionForDefinition(definition, function);
+			}
 		}
 
 	}

@@ -4,6 +4,11 @@ import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.semantics.JavaType;
+import org.unclesniper.uake.semantics.UakeModule;
+import org.unclesniper.uake.semantics.RecordType;
+import org.unclesniper.uake.semantics.JavaTypeTemplate;
+import org.unclesniper.uake.semantics.RecordTypeTemplate;
 
 public class TypeDefinition extends AbstractTemplate {
 
@@ -12,6 +17,8 @@ public class TypeDefinition extends AbstractTemplate {
 		public Body(Location location) {
 			super(location);
 		}
+
+		public abstract void createElement(TypeDefinition definition, CompilationContext cctx);
 
 	}
 
@@ -54,6 +61,24 @@ public class TypeDefinition extends AbstractTemplate {
 				fields.add(field);
 		}
 
+		public void createElement(TypeDefinition definition, CompilationContext cctx) {
+			UakeModule targetModule = cctx.getTargetModule();
+			QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(),
+					definition.name, definition.nameLocation);
+			if(definition.isTemplate()) {
+				RecordTypeTemplate type = new RecordTypeTemplate(qname, definition.getLocation());
+				for(TemplateParameter tparam : definition.getTemplateParameters())
+					type.addTemplateParameter(tparam);
+				targetModule.put(type);
+				cctx.putTypeTemplateForDefinition(definition, type);
+			}
+			else {
+				RecordType type = new RecordType(qname, definition.getLocation());
+				targetModule.put(type);
+				cctx.putTypeForDefinition(definition, type);
+			}
+		}
+
 	}
 
 	public static class NativeBody extends Body {
@@ -67,6 +92,24 @@ public class TypeDefinition extends AbstractTemplate {
 
 		public ClassReference getClassReference() {
 			return classReference;
+		}
+
+		public void createElement(TypeDefinition definition, CompilationContext cctx) {
+			UakeModule targetModule = cctx.getTargetModule();
+			QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(),
+					definition.name, definition.nameLocation);
+			if(definition.isTemplate()) {
+				JavaTypeTemplate type = new JavaTypeTemplate(qname, definition.getLocation(), null);
+				for(TemplateParameter tparam : definition.getTemplateParameters())
+					type.addTemplateParameter(tparam);
+				targetModule.put(type);
+				cctx.putTypeTemplateForDefinition(definition, type);
+			}
+			else {
+				JavaType type = new JavaType(qname, definition.getLocation(), null);
+				targetModule.put(type);
+				cctx.putTypeForDefinition(definition, type);
+			}
 		}
 
 	}
@@ -120,7 +163,7 @@ public class TypeDefinition extends AbstractTemplate {
 	}
 
 	public void createElements(CompilationContext cctx) {
-		//TODO
+		body.createElement(this, cctx);
 	}
 
 }

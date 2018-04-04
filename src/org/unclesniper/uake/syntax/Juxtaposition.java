@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class Juxtaposition extends Expression {
 
@@ -30,6 +31,11 @@ public class Juxtaposition extends Expression {
 	public void addPiece(Expression piece) {
 		if(piece != null)
 			pieces.add(piece);
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		for(Expression piece : pieces)
+			piece.bindTypes(cctx);
 	}
 
 }

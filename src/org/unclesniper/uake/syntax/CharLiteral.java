@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class CharLiteral extends Expression {
 
@@ -14,5 +15,7 @@ public class CharLiteral extends Expression {
 	public char getValue() {
 		return value;
 	}
+
+	public void bindTypes(CompilationContext cctx) {}
 
 }

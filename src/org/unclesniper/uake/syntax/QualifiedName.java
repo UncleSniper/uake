@@ -38,6 +38,10 @@ public class QualifiedName {
 
 	public QualifiedName() {}
 
+	public QualifiedName(String name, Location location) {
+		segments.add(new Segment(location, name));
+	}
+
 	public QualifiedName(QualifiedName head, String tail, Location location) {
 		if(head != null) {
 			for(Segment segment : head.getSegments())

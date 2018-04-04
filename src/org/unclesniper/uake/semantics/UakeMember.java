@@ -3,7 +3,7 @@ package org.unclesniper.uake.semantics;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.syntax.QualifiedName;
 
-public interface UakeMember {
+public interface UakeMember extends UakeScoped {
 
 	String getUnqualifiedName();
 

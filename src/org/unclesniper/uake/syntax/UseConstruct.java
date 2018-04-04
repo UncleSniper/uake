@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class UseConstruct extends Expression {
 
@@ -28,6 +29,10 @@ public class UseConstruct extends Expression {
 
 	public void setImplementation(Expression implementation) {
 		this.implementation = implementation;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class DoubleLiteral extends Expression {
 
@@ -21,5 +22,7 @@ public class DoubleLiteral extends Expression {
 	public double getValue() {
 		return value;
 	}
+
+	public void bindTypes(CompilationContext cctx) {}
 
 }

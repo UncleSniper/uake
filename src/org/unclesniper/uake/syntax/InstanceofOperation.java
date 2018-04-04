@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class InstanceofOperation extends Expression {
 
@@ -45,6 +46,10 @@ public class InstanceofOperation extends Expression {
 
 	public void setRightOperand(TypeSpecifier rightOperand) {
 		this.rightOperand = rightOperand;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

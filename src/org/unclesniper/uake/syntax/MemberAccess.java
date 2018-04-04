@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class MemberAccess extends Expression {
 
@@ -56,6 +57,10 @@ public class MemberAccess extends Expression {
 
 	public void setMemberLocation(Location memberLocation) {
 		this.memberLocation = memberLocation;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

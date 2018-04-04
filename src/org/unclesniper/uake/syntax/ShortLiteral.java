@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 import org.unclesniper.uake.LiteralExceedsRangeException;
 
 public class ShortLiteral extends Expression {
@@ -32,5 +33,7 @@ public class ShortLiteral extends Expression {
 	public short getValue() {
 		return value;
 	}
+
+	public void bindTypes(CompilationContext cctx) {}
 
 }

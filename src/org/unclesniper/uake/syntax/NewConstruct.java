@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class NewConstruct extends Expression {
 
@@ -71,6 +72,10 @@ public class NewConstruct extends Expression {
 	public void addField(FieldInitializer field) {
 		if(field != null)
 			fields.add(field);
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

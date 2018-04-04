@@ -1,23 +1,34 @@
 package org.unclesniper.uake;
 
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.IdentityHashMap;
 import org.unclesniper.uake.semantics.UakeType;
 import org.unclesniper.uake.semantics.Property;
 import org.unclesniper.uake.semantics.Provision;
+import org.unclesniper.uake.semantics.UakeScope;
+import org.unclesniper.uake.semantics.Transform;
 import org.unclesniper.uake.semantics.UakeModule;
+import org.unclesniper.uake.semantics.UakeScoped;
+import org.unclesniper.uake.syntax.QualifiedName;
 import org.unclesniper.uake.syntax.TypeDefinition;
 import org.unclesniper.uake.semantics.UakeFunction;
 import org.unclesniper.uake.semantics.UakeVariable;
 import org.unclesniper.uake.syntax.ModuleDefinition;
+import org.unclesniper.uake.syntax.BindingExpression;
 import org.unclesniper.uake.syntax.FunctionDefinition;
 import org.unclesniper.uake.syntax.VariableDefinition;
 import org.unclesniper.uake.syntax.PropertyDefinition;
 import org.unclesniper.uake.semantics.UakeTypeTemplate;
 import org.unclesniper.uake.syntax.ProvisionDefinition;
 import org.unclesniper.uake.semantics.ProvisionTemplate;
+import org.unclesniper.uake.semantics.InstanceofTransform;
 import org.unclesniper.uake.semantics.UakeFunctionTemplate;
 
 public class CompilationContext {
+
+	private static final Transform<UakeScoped, UakeScope> SCOPED_TO_SCOPE
+			= new InstanceofTransform<UakeScoped, UakeScope>(UakeScope.class);
 
 	private final DefinitionContext definitionContext;
 
@@ -50,9 +61,18 @@ public class CompilationContext {
 	private final IdentityHashMap<ProvisionDefinition, ProvisionTemplate> provisionTemplatesByDefinition
 			= new IdentityHashMap<ProvisionDefinition, ProvisionTemplate>();
 
+	private final IdentityHashMap<BindingExpression, UakeVariable> variablesByBindingExpression
+			= new IdentityHashMap<BindingExpression, UakeVariable>();
+
+	private final IdentityHashMap<BindingExpression, UakeScope> scopesByBindingExpression
+			= new IdentityHashMap<BindingExpression, UakeScope>();
+
+	private final Deque<UakeScope> scope = new LinkedList<UakeScope>();
+
 	public CompilationContext(DefinitionContext definitionContext) {
 		this.definitionContext = definitionContext;
 		targetModule = definitionContext.getRootModule();
+		pushScope(targetModule);
 	}
 
 	public DefinitionContext getDefinitionContext() {
@@ -139,6 +159,77 @@ public class CompilationContext {
 
 	public void putProvisionTemplateForDefinition(ProvisionDefinition definition, ProvisionTemplate provision) {
 		provisionTemplatesByDefinition.put(definition, provision);
+	}
+
+	public UakeVariable getVariableByBindingExpression(BindingExpression expression) {
+		return variablesByBindingExpression.get(expression);
+	}
+
+	public void putVariableForBindingExpression(BindingExpression expression, UakeVariable variable) {
+		variablesByBindingExpression.put(expression, variable);
+	}
+
+	public UakeScope getScopeByBindingExpression(BindingExpression expression) {
+		return scopesByBindingExpression.get(expression);
+	}
+
+	public void putScopeForBindingExpression(BindingExpression expression, UakeScope scope) {
+		scopesByBindingExpression.put(expression, scope);
+	}
+
+	public void pushScope(UakeScope scope) {
+		if(scope == null)
+			throw new NullPointerException("Cannot push null scope");
+		this.scope.addFirst(scope);
+	}
+
+	public void popScope() {
+		scope.removeFirst();
+	}
+
+	public UakeModule.Group<UakeScoped> resolveName(String name) {
+		UakeModule.Group<UakeScoped> selection = new UakeModule.Group<UakeScoped>();
+		if(!scope.isEmpty())
+			scope.getFirst().resolve(name, selection);
+		return selection;
+	}
+
+	public UakeModule.Group<UakeScoped> resolveNameFail(String name, Location referenceLocation) {
+		UakeModule.Group<UakeScoped> selection = resolveName(name);
+		if(selection.isEmpty())
+			throw new UnboundNameException(referenceLocation, name);
+		return selection;
+	}
+
+	public UakeModule.Group<UakeScoped> resolveName(QualifiedName name) {
+		return resolveName(name, false);
+	}
+
+	public UakeModule.Group<UakeScoped> resolveNameFail(QualifiedName name) {
+		return resolveName(name, true);
+	}
+
+	public UakeModule.Group<UakeScoped> resolveName(QualifiedName name, boolean fail) {
+		UakeModule.Group<UakeScoped> selection = null;
+		for(QualifiedName.Segment segment : name.getSegments()) {
+			UakeModule.Group<UakeScoped> next = new UakeModule.Group<UakeScoped>();
+			if(selection == null) {
+				for(UakeScope level : scope)
+					level.resolve(segment.getName(), next);
+			}
+			else {
+				for(UakeScope enclosing : selection.map(CompilationContext.SCOPED_TO_SCOPE))
+					enclosing.resolve(segment.getName(), next);
+			}
+			selection = next;
+			if(selection.isEmpty()) {
+				if(fail)
+					throw new UnboundNameException(segment.getLocation(), segment.getName());
+				else
+					break;
+			}
+		}
+		return selection;
 	}
 
 }

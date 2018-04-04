@@ -196,4 +196,8 @@ public class ProvisionDefinition extends AbstractTemplate implements Parameteriz
 		}
 	}
 
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
+	}
+
 }

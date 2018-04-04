@@ -75,4 +75,8 @@ public class VariableDefinition extends Definition {
 		cctx.putVariableForDefinition(this, variable);
 	}
 
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
+	}
+
 }

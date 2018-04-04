@@ -226,4 +226,8 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 		body.createElement(this, cctx);
 	}
 
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
+	}
+
 }

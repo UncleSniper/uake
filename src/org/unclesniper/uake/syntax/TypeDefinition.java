@@ -166,4 +166,8 @@ public class TypeDefinition extends AbstractTemplate {
 		body.createElement(this, cctx);
 	}
 
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
+	}
+
 }

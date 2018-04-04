@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class MapLiteral extends Expression {
 
@@ -41,6 +42,10 @@ public class MapLiteral extends Expression {
 	public void addBinding(Binding binding) {
 		if(binding != null)
 			bindings.add(binding);
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

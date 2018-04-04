@@ -101,4 +101,8 @@ public class PropertyDefinition extends Definition implements Parameterized {
 		cctx.putPropertyForDefinition(this, property);
 	}
 
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
+	}
+
 }

@@ -1,7 +1,6 @@
 package org.unclesniper.uake.semantics;
 
-public class InstanceofTransform<SourceT, DestinationT extends SourceT>
-		implements Transform<SourceT, DestinationT> {
+public class InstanceofTransform<SourceT, DestinationT> implements Transform<SourceT, DestinationT> {
 
 	private Class<? extends DestinationT> type;
 

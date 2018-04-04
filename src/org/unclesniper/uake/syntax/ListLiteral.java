@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class ListLiteral extends Expression {
 
@@ -19,6 +20,10 @@ public class ListLiteral extends Expression {
 	public void addElement(Expression element) {
 		if(element != null)
 			elements.add(element);
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

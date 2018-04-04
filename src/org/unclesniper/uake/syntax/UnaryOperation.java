@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class UnaryOperation extends Expression {
 
@@ -39,6 +40,10 @@ public class UnaryOperation extends Expression {
 
 	public void setOperand(Expression operand) {
 		this.operand = operand;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

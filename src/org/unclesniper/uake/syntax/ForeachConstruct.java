@@ -1,8 +1,11 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.semantics.UakeVariable;
+import org.unclesniper.uake.semantics.OverlayLevel;
 
-public class ForeachConstruct extends Expression {
+public class ForeachConstruct extends Expression implements BindingExpression {
 
 	private TypeSpecifier elementType;
 
@@ -62,6 +65,23 @@ public class ForeachConstruct extends Expression {
 
 	public void setBody(Statement body) {
 		this.body = body;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		UakeVariable bindVar = new UakeVariable(new QualifiedName(bindName, bindLocation),
+				bindLocation, null, false);
+		cctx.putVariableForBindingExpression(this, bindVar);
+		OverlayLevel scope = new OverlayLevel();
+		scope.put(bindVar);
+		cctx.putScopeForBindingExpression(this, scope);
+		collection.bindTypes(cctx);
+		cctx.pushScope(scope);
+		try {
+			body.bindTypes(cctx);
+		}
+		finally {
+			cctx.popScope();
+		}
 	}
 
 }

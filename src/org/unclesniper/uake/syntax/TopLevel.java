@@ -11,4 +11,6 @@ public abstract class TopLevel extends Syntax {
 
 	public abstract void createElements(CompilationContext cctx);
 
+	public abstract void bindTypes(CompilationContext cctx);
+
 }

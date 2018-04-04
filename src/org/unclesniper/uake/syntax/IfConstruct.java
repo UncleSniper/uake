@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class IfConstruct extends Expression {
 
@@ -113,6 +114,10 @@ public class IfConstruct extends Expression {
 
 	public void setElseBranch(Statement elseBranch) {
 		this.elseBranch = elseBranch;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

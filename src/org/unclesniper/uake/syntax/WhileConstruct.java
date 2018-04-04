@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class WhileConstruct extends Expression {
 
@@ -39,6 +40,11 @@ public class WhileConstruct extends Expression {
 
 	public void setBody(Statement body) {
 		this.body = body;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		condition.bindTypes(cctx);
+		body.bindTypes(cctx);
 	}
 
 }

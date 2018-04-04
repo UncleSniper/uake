@@ -82,6 +82,18 @@ public class ModuleDefinition extends Definition {
 		else
 			targetModule = finalModules.getFirst();
 		cctx.putModuleForDefinition(this, targetModule);
+		UakeModule oldTarget = cctx.setTargetModule(targetModule);
+		try {
+			for(TopLevel child : children)
+				child.createElements(cctx);
+		}
+		finally {
+			cctx.setTargetModule(oldTarget);
+		}
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

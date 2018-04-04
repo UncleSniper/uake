@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 import org.unclesniper.uake.LiteralExceedsRangeException;
 
 public class LongLiteral extends Expression {
@@ -24,5 +25,7 @@ public class LongLiteral extends Expression {
 			throw new LiteralExceedsRangeException(location, LiteralExceedsRangeException.Type.LONG, specifier);
 		}
 	}
+
+	public void bindTypes(CompilationContext cctx) {}
 
 }

@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class UnuseConstruct extends Expression {
 
@@ -17,6 +18,10 @@ public class UnuseConstruct extends Expression {
 
 	public void setProperty(Expression property) {
 		this.property = property;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

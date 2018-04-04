@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class Block extends Expression {
 
@@ -57,6 +58,10 @@ public class Block extends Expression {
 	public void addItem(Item item) {
 		if(item != null)
 			items.add(item);
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

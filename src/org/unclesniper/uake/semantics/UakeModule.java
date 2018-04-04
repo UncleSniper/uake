@@ -8,7 +8,7 @@ import java.util.IdentityHashMap;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.syntax.QualifiedName;
 
-public class UakeModule extends AbstractMember {
+public class UakeModule extends AbstractMember implements UakeScope {
 
 	public static class Group<MemberT> implements Iterable<MemberT> {
 
@@ -104,6 +104,9 @@ public class UakeModule extends AbstractMember {
 	public static final Transform<UakeMember, UakeModule> MODULE_TRANSFORM
 			= new InstanceofTransform<UakeMember, UakeModule>(UakeModule.class);
 
+	public static final Transform<UakeMember, UakeScoped> MEMBER_TO_SCOPED
+			= new WideningTransform<UakeMember, UakeScoped>();
+
 	private final Map<String, Group<UakeMember>> groups = new HashMap<String, Group<UakeMember>>();
 
 	private UakeModule parent;
@@ -126,19 +129,7 @@ public class UakeModule extends AbstractMember {
 	}
 
 	public void put(UakeMember member, String name) {
-		if(member == null)
-			return;
-		if(name == null) {
-			name = member.getUnqualifiedName();
-			if(name == null)
-				return;
-		}
-		Group<UakeMember> group = groups.get(name);
-		if(group == null) {
-			group = new Group<UakeMember>();
-			groups.put(name, group);
-		}
-		group.addMember(member);
+		UakeModule.putInto(groups, member, name);
 	}
 
 	public void putrec(UakeMember member) {
@@ -203,6 +194,28 @@ public class UakeModule extends AbstractMember {
 				break;
 		}
 		return selection;
+	}
+
+	public void resolve(String name, Group<UakeScoped> sink) {
+		Group<UakeMember> selection = groups.get(name);
+		if(selection != null)
+			selection.map(UakeModule.MEMBER_TO_SCOPED, sink);
+	}
+
+	public static void putInto(Map<String, Group<UakeMember>> groups, UakeMember member, String name) {
+		if(member == null)
+			return;
+		if(name == null) {
+			name = member.getUnqualifiedName();
+			if(name == null)
+				return;
+		}
+		Group<UakeMember> group = groups.get(name);
+		if(group == null) {
+			group = new Group<UakeMember>();
+			groups.put(name, group);
+		}
+		group.addMember(member);
 	}
 
 }

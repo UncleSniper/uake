@@ -1,6 +1,7 @@
 package org.unclesniper.uake.syntax;
 
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class BreakConstruct extends Expression {
 
@@ -56,6 +57,10 @@ public class BreakConstruct extends Expression {
 
 	public void setReturnValue(Expression returnValue) {
 		this.returnValue = returnValue;
+	}
+
+	public void bindTypes(CompilationContext cctx) {
+		//TODO
 	}
 
 }

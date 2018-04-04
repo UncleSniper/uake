@@ -662,9 +662,8 @@ public class Parser {
 				return null;
 		}
 		next();
-		PropertyTrigger trigger = new PropertyTrigger(initiator, event, parseQName());
-		if(token != null && token.getType() == Token.Type.LESS)
-			parseTemplateArguments(trigger);
+		PropertyTrigger trigger = new PropertyTrigger(initiator, event, parseExpression());
+		consume(Token.Type.SEMICOLON);
 		return trigger;
 	}
 
@@ -799,19 +798,6 @@ public class Parser {
 				token.getRawText(), token.getLocation());
 		next();
 		if(token == null)
-			unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.SEMICOLON);
-		switch(token.getType()) {
-			case LESS:
-				parseTemplateParameters(property);
-				break;
-			case LEFT_ROUND:
-			case ASSIGN:
-			case SEMICOLON:
-				break;
-			default:
-				unexpected(Token.Type.LESS, Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.SEMICOLON);
-		}
-		if(token == null)
 			unexpected(Token.Type.LEFT_ROUND, Token.Type.ASSIGN, Token.Type.SEMICOLON);
 		switch(token.getType()) {
 			case LEFT_ROUND:
@@ -827,24 +813,9 @@ public class Parser {
 			unexpected(Token.Type.ASSIGN, Token.Type.SEMICOLON);
 		switch(token.getType()) {
 			case ASSIGN:
-				{
-					Location bottomInitiator = token.getLocation();
-					next();
-					PropertyDefinition.Bottom bottom = new PropertyDefinition.Bottom(initiator, parseQName());
-					if(token == null)
-						unexpected(Token.Type.LESS, Token.Type.SEMICOLON);
-					switch(token.getType()) {
-						case LESS:
-							parseTemplateArguments(bottom);
-							expect(Token.Type.SEMICOLON);
-							break;
-						case SEMICOLON:
-							break;
-						default:
-							unexpected(Token.Type.LESS, Token.Type.SEMICOLON);
-					}
-					property.setBottom(bottom);
-				}
+				next();
+				property.setBottom(parseExpression());
+				expect(Token.Type.SEMICOLON);
 				break;
 			case SEMICOLON:
 				break;

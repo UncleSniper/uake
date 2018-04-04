@@ -3,6 +3,11 @@ package org.unclesniper.uake.syntax;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.semantics.Provision;
+import org.unclesniper.uake.semantics.UakeModule;
+import org.unclesniper.uake.semantics.SoftFunction;
+import org.unclesniper.uake.semantics.ProvisionTemplate;
+import org.unclesniper.uake.semantics.SoftFunctionTemplate;
 
 public class ProvisionDefinition extends AbstractTemplate implements Parameterized {
 
@@ -170,7 +175,25 @@ public class ProvisionDefinition extends AbstractTemplate implements Parameteriz
 	}
 
 	public void createElements(CompilationContext cctx) {
-		//TODO
+		UakeModule targetModule = cctx.getTargetModule();
+		QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(), name, nameLocation);
+		if(isTemplate()) {
+			ProvisionTemplate provision = new ProvisionTemplate(qname, getLocation(), null);
+			for(TemplateParameter tparam : getTemplateParameters())
+				provision.addTemplateParameter(tparam);
+			for(Parameter param : getParameters())
+				provision.addParameter(new SoftFunctionTemplate.SoftParameterTemplate(param.getName(),
+						null, param.isElliptic()));
+			targetModule.put(provision);
+			cctx.putProvisionTemplateForDefinition(this, provision);
+		}
+		else {
+			Provision provision = new Provision(qname, getLocation(), null);
+			for(Parameter param : getParameters())
+				provision.addParameter(new SoftFunction.SoftParameter(param.getName(), null, param.isElliptic()));
+			targetModule.put(provision);
+			cctx.putProvisionForDefinition(this, provision);
+		}
 	}
 
 }

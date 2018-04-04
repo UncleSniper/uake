@@ -4,34 +4,11 @@ import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.semantics.Property;
+import org.unclesniper.uake.semantics.UakeModule;
+import org.unclesniper.uake.semantics.SoftFunction;
 
-public class PropertyDefinition extends AbstractTemplate implements Parameterized {
-
-	public static class Bottom extends Syntax implements TemplateInvocation {
-
-		private final QualifiedName name;
-
-		private final List<TypeSpecifier> templateArguments = new LinkedList<TypeSpecifier>();
-
-		public Bottom(Location initiator, QualifiedName name) {
-			super(initiator);
-			this.name = name;
-		}
-
-		public QualifiedName getName() {
-			return name;
-		}
-
-		public Iterable<TypeSpecifier> getTemplateArguments() {
-			return templateArguments;
-		}
-
-		public void addTemplateArgument(TypeSpecifier argument) {
-			if(argument != null)
-				templateArguments.add(argument);
-		}
-
-	}
+public class PropertyDefinition extends Definition implements Parameterized {
 
 	private TypeSpecifier returnType;
 
@@ -41,7 +18,7 @@ public class PropertyDefinition extends AbstractTemplate implements Parameterize
 
 	private LinkedList<Parameter> parameters;
 
-	private Bottom bottom;
+	private Expression bottom;
 
 	private final List<PropertyTrigger> triggers = new LinkedList<PropertyTrigger>();
 
@@ -76,11 +53,11 @@ public class PropertyDefinition extends AbstractTemplate implements Parameterize
 		this.nameLocation = nameLocation;
 	}
 
-	public Bottom getBottom() {
+	public Expression getBottom() {
 		return bottom;
 	}
 
-	public void setBottom(Bottom bottom) {
+	public void setBottom(Expression bottom) {
 		this.bottom = bottom;
 	}
 
@@ -115,7 +92,13 @@ public class PropertyDefinition extends AbstractTemplate implements Parameterize
 	}
 
 	public void createElements(CompilationContext cctx) {
-		//TODO
+		UakeModule targetModule = cctx.getTargetModule();
+		QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(), name, nameLocation);
+		Property property = new Property(qname, getLocation(), null);
+		for(Parameter param : parameters)
+			property.addParameter(new SoftFunction.SoftParameter(param.getName(), null, param.isElliptic()));
+		targetModule.put(property);
+		cctx.putPropertyForDefinition(this, property);
 	}
 
 }

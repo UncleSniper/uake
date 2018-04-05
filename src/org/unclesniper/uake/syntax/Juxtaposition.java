@@ -33,6 +33,11 @@ public class Juxtaposition extends Expression {
 			pieces.add(piece);
 	}
 
+	public void createElements(CompilationContext cctx) {
+		for(Expression piece : pieces)
+			piece.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
 		for(Expression piece : pieces)
 			piece.bindTypes(cctx);

@@ -6,10 +6,11 @@ import org.unclesniper.uake.CompilationContext;
 import org.unclesniper.uake.semantics.Provision;
 import org.unclesniper.uake.semantics.UakeModule;
 import org.unclesniper.uake.semantics.SoftFunction;
+import org.unclesniper.uake.semantics.UakeVariable;
 import org.unclesniper.uake.semantics.ProvisionTemplate;
 import org.unclesniper.uake.semantics.SoftFunctionTemplate;
 
-public class ProvisionDefinition extends AbstractTemplate implements Parameterized {
+public class ProvisionDefinition extends AbstractTemplate implements Parameterized, SoftCall {
 
 	public static abstract class Trigger extends Syntax {
 
@@ -55,9 +56,40 @@ public class ProvisionDefinition extends AbstractTemplate implements Parameteriz
 			super(location);
 		}
 
+		public abstract void createElements(ProvisionDefinition definition, QualifiedName qname,
+				CompilationContext cctx);
+
 	}
 
-	public static class BlockBody extends Body {
+	public static abstract class SoftCallBody extends Body {
+
+		public SoftCallBody(Location location) {
+			super(location);
+		}
+
+		public abstract Expression getExpression();
+
+		public void createElements(ProvisionDefinition definition, QualifiedName qname, CompilationContext cctx) {
+			UakeModule callModule = new UakeModule(qname, definition.getLocation(), cctx.getTargetModule());
+			for(Parameter param : definition.getParameters()) {
+				UakeVariable paramVar = new UakeVariable(new QualifiedName(qname,
+						param.getName(), param.getLocation()), param.getLocation(), null, false);
+				cctx.putVariableForParameter(param, paramVar);
+				callModule.put(paramVar);
+			}
+			cctx.putModuleForSoftCall(definition, callModule);
+			UakeModule oldTarget = cctx.setTargetModule(callModule);
+			try {
+				getExpression().createElements(cctx);
+			}
+			finally {
+				cctx.setTargetModule(oldTarget);
+			}
+		}
+
+	}
+
+	public static class BlockBody extends SoftCallBody {
 
 		private final Block block;
 
@@ -70,9 +102,13 @@ public class ProvisionDefinition extends AbstractTemplate implements Parameteriz
 			return block;
 		}
 
+		public Expression getExpression() {
+			return block;
+		}
+
 	}
 
-	public static class ExpressionBody extends Body {
+	public static class ExpressionBody extends SoftCallBody {
 
 		private final Expression expression;
 
@@ -98,6 +134,10 @@ public class ProvisionDefinition extends AbstractTemplate implements Parameteriz
 
 		public Expression getFunction() {
 			return function;
+		}
+
+		public void createElements(ProvisionDefinition definition, QualifiedName qname, CompilationContext cctx) {
+			function.createElements(cctx);
 		}
 
 	}
@@ -194,6 +234,7 @@ public class ProvisionDefinition extends AbstractTemplate implements Parameteriz
 			targetModule.put(provision);
 			cctx.putProvisionForDefinition(this, provision);
 		}
+		body.createElements(this, qname, cctx);
 	}
 
 	public void bindTypes(CompilationContext cctx) {

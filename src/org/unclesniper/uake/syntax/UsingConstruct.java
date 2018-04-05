@@ -42,8 +42,14 @@ public class UsingConstruct extends Expression {
 		this.body = body;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		property.createElements(cctx);
+		implementation.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		property.bindTypes(cctx);
+		implementation.bindTypes(cctx);
 	}
 
 }

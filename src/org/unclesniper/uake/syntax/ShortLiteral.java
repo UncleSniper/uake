@@ -34,6 +34,8 @@ public class ShortLiteral extends Expression {
 		return value;
 	}
 
+	public void createElements(CompilationContext cctx) {}
+
 	public void bindTypes(CompilationContext cctx) {}
 
 }

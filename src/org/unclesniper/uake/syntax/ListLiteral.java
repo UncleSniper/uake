@@ -22,8 +22,14 @@ public class ListLiteral extends Expression {
 			elements.add(element);
 	}
 
+	public void createElements(CompilationContext cctx) {
+		for(Expression element : elements)
+			element.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		for(Expression element : elements)
+			element.bindTypes(cctx);
 	}
 
 }

@@ -59,8 +59,12 @@ public class MemberAccess extends Expression {
 		this.memberLocation = memberLocation;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		operand.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		operand.bindTypes(cctx);
 	}
 
 }

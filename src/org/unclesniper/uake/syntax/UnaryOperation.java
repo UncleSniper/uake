@@ -42,8 +42,12 @@ public class UnaryOperation extends Expression {
 		this.operand = operand;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		operand.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		operand.bindTypes(cctx);
 	}
 
 }

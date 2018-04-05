@@ -42,6 +42,11 @@ public class WhileConstruct extends Expression {
 		this.body = body;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		condition.createElements(cctx);
+		body.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
 		condition.bindTypes(cctx);
 		body.bindTypes(cctx);

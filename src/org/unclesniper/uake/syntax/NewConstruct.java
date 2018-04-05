@@ -74,8 +74,15 @@ public class NewConstruct extends Expression {
 			fields.add(field);
 	}
 
+	public void createElements(CompilationContext cctx) {
+		for(FieldInitializer field : fields)
+			field.getValue().createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		//TODO: type
+		for(FieldInitializer field : fields)
+			field.getValue().bindTypes(cctx);
 	}
 
 }

@@ -116,8 +116,26 @@ public class IfConstruct extends Expression {
 		this.elseBranch = elseBranch;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		condition.createElements(cctx);
+		thenBranch.createElements(cctx);
+		for(ElseIf elseIf : elseIfs) {
+			elseIf.getCondition().createElements(cctx);
+			elseIf.getThenBranch().createElements(cctx);
+		}
+		if(elseBranch != null)
+			elseBranch.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		condition.bindTypes(cctx);
+		thenBranch.bindTypes(cctx);
+		for(ElseIf elseIf : elseIfs) {
+			elseIf.getCondition().bindTypes(cctx);
+			elseIf.getThenBranch().bindTypes(cctx);
+		}
+		if(elseBranch != null)
+			elseBranch.bindTypes(cctx);
 	}
 
 }

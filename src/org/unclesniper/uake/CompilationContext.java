@@ -3,6 +3,8 @@ package org.unclesniper.uake;
 import java.util.Deque;
 import java.util.LinkedList;
 import java.util.IdentityHashMap;
+import org.unclesniper.uake.syntax.SoftCall;
+import org.unclesniper.uake.syntax.Parameter;
 import org.unclesniper.uake.semantics.UakeType;
 import org.unclesniper.uake.semantics.Property;
 import org.unclesniper.uake.semantics.Provision;
@@ -66,6 +68,12 @@ public class CompilationContext {
 
 	private final IdentityHashMap<BindingExpression, UakeScope> scopesByBindingExpression
 			= new IdentityHashMap<BindingExpression, UakeScope>();
+
+	private final IdentityHashMap<SoftCall, UakeModule> modulesBySoftCall
+			= new IdentityHashMap<SoftCall, UakeModule>();
+
+	private final IdentityHashMap<Parameter, UakeVariable> variablesByParameter
+			= new IdentityHashMap<Parameter, UakeVariable>();
 
 	private final Deque<UakeScope> scope = new LinkedList<UakeScope>();
 
@@ -175,6 +183,22 @@ public class CompilationContext {
 
 	public void putScopeForBindingExpression(BindingExpression expression, UakeScope scope) {
 		scopesByBindingExpression.put(expression, scope);
+	}
+
+	public UakeModule getModuleBySoftCall(SoftCall call) {
+		return modulesBySoftCall.get(call);
+	}
+
+	public void putModuleForSoftCall(SoftCall call, UakeModule module) {
+		modulesBySoftCall.put(call, module);
+	}
+
+	public UakeVariable getVariableByParameter(Parameter parameter) {
+		return variablesByParameter.get(parameter);
+	}
+
+	public void putVariableForParameter(Parameter parameter, UakeVariable variable) {
+		variablesByParameter.put(parameter, variable);
 	}
 
 	public void pushScope(UakeScope scope) {

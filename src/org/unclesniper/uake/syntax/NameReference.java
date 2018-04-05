@@ -20,6 +20,8 @@ public class NameReference extends Expression {
 		this.name = name;
 	}
 
+	public void createElements(CompilationContext cctx) {}
+
 	public void bindTypes(CompilationContext cctx) {}
 
 }

@@ -67,6 +67,11 @@ public class ForeachConstruct extends Expression implements BindingExpression {
 		this.body = body;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		collection.createElements(cctx);
+		body.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
 		UakeVariable bindVar = new UakeVariable(new QualifiedName(bindName, bindLocation),
 				bindLocation, null, false);

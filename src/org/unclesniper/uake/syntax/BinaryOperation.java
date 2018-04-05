@@ -79,8 +79,14 @@ public class BinaryOperation extends Expression {
 		this.rightOperand = rightOperand;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		leftOperand.createElements(cctx);
+		rightOperand.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		leftOperand.bindTypes(cctx);
+		rightOperand.bindTypes(cctx);
 	}
 
 }

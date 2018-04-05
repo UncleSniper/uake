@@ -20,8 +20,12 @@ public class UnuseConstruct extends Expression {
 		this.property = property;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		property.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		property.bindTypes(cctx);
 	}
 
 }

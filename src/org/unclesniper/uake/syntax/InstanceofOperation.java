@@ -48,6 +48,10 @@ public class InstanceofOperation extends Expression {
 		this.rightOperand = rightOperand;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		leftOperand.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
 		//TODO
 	}

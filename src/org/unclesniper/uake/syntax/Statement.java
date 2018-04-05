@@ -15,7 +15,9 @@ public class Statement extends TopLevel {
 		return expression;
 	}
 
-	public void createElements(CompilationContext cctx) {}
+	public void createElements(CompilationContext cctx) {
+		expression.createElements(cctx);
+	}
 
 	public void bindTypes(CompilationContext cctx) {
 		expression.bindTypes(cctx);

@@ -44,6 +44,13 @@ public class MapLiteral extends Expression {
 			bindings.add(binding);
 	}
 
+	public void createElements(CompilationContext cctx) {
+		for(Binding binding : bindings) {
+			binding.getKey().createElements(cctx);
+			binding.getValue().createElements(cctx);
+		}
+	}
+
 	public void bindTypes(CompilationContext cctx) {
 		//TODO
 	}

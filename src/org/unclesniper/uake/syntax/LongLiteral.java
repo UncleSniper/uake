@@ -26,6 +26,8 @@ public class LongLiteral extends Expression {
 		}
 	}
 
+	public void createElements(CompilationContext cctx) {}
+
 	public void bindTypes(CompilationContext cctx) {}
 
 }

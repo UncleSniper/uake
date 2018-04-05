@@ -13,6 +13,10 @@ public class Block extends Expression {
 			super(location);
 		}
 
+		public abstract void createElements(CompilationContext cctx);
+
+		public abstract void bindTypes(CompilationContext cctx);
+
 	}
 
 	public static class StatementItem extends Item {
@@ -28,6 +32,14 @@ public class Block extends Expression {
 			return statement;
 		}
 
+		public void createElements(CompilationContext cctx) {
+			statement.createElements(cctx);
+		}
+
+		public void bindTypes(CompilationContext cctx) {
+			statement.bindTypes(cctx);
+		}
+
 	}
 
 	public static class VariableItem extends Item {
@@ -41,6 +53,14 @@ public class Block extends Expression {
 
 		public VariableDefinition getVariable() {
 			return variable;
+		}
+
+		public void createElements(CompilationContext cctx) {
+			variable.createElements(cctx);
+		}
+
+		public void bindTypes(CompilationContext cctx) {
+			variable.bindTypes(cctx);
 		}
 
 	}
@@ -60,8 +80,14 @@ public class Block extends Expression {
 			items.add(item);
 	}
 
+	public void createElements(CompilationContext cctx) {
+		for(Item item : items)
+			item.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		for(Item item : items)
+			item.bindTypes(cctx);
 	}
 
 }

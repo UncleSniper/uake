@@ -46,6 +46,10 @@ public class LambdaConstruct extends Expression implements Parameterized {
 		this.body = body;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		//TODO
+	}
+
 	public void bindTypes(CompilationContext cctx) {
 		//TODO
 	}

@@ -9,6 +9,8 @@ public abstract class Expression extends Syntax {
 		super(location);
 	}
 
+	public abstract void createElements(CompilationContext cctx);
+
 	public abstract void bindTypes(CompilationContext cctx);
 
 }

@@ -7,10 +7,11 @@ import org.unclesniper.uake.CompilationContext;
 import org.unclesniper.uake.semantics.UakeModule;
 import org.unclesniper.uake.semantics.SoftFunction;
 import org.unclesniper.uake.semantics.JavaFunction;
+import org.unclesniper.uake.semantics.UakeVariable;
 import org.unclesniper.uake.semantics.SoftFunctionTemplate;
 import org.unclesniper.uake.semantics.JavaFunctionTemplate;
 
-public class FunctionDefinition extends AbstractTemplate implements Parameterized {
+public class FunctionDefinition extends AbstractTemplate implements Parameterized, SoftCall {
 
 	public static abstract class Body extends Syntax {
 
@@ -45,7 +46,8 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 			UakeModule targetModule = cctx.getTargetModule();
 			QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(),
 					definition.name, definition.nameLocation);
-			if(definition.isTemplate()) {
+			boolean isTemplate = definition.isTemplate();
+			if(isTemplate) {
 				SoftFunctionTemplate function = new SoftFunctionTemplate(qname, definition.getLocation(), null);
 				for(TemplateParameter tparam : definition.getTemplateParameters())
 					function.addTemplateParameter(tparam);
@@ -61,6 +63,21 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 					function.addParameter(new SoftFunction.SoftParameter(param.getName(), null, param.isElliptic()));
 				targetModule.put(function);
 				cctx.putFunctionForDefinition(definition, function);
+			}
+			UakeModule callModule = new UakeModule(qname, definition.getLocation(), targetModule);
+			for(Parameter param : definition.getParameters()) {
+				UakeVariable paramVar = new UakeVariable(new QualifiedName(qname,
+						param.getName(), param.getLocation()), param.getLocation(), null, false);
+				cctx.putVariableForParameter(param, paramVar);
+				callModule.put(paramVar);
+			}
+			cctx.putModuleForSoftCall(definition, callModule);
+			UakeModule oldTarget = cctx.setTargetModule(callModule);
+			try {
+				getExpression().createElements(cctx);
+			}
+			finally {
+				cctx.setTargetModule(oldTarget);
 			}
 		}
 

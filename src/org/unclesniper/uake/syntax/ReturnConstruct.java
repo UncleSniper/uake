@@ -20,8 +20,14 @@ public class ReturnConstruct extends Expression {
 		this.returnValue = returnValue;
 	}
 
+	public void createElements(CompilationContext cctx) {
+		if(returnValue != null)
+			returnValue.createElements(cctx);
+	}
+
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		if(returnValue != null)
+			returnValue.bindTypes(cctx);
 	}
 
 }

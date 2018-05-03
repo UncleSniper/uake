@@ -5,12 +5,14 @@ import java.util.LinkedList;
 import org.unclesniper.uake.CompilationContext;
 import org.unclesniper.uake.semantics.UakeType;
 import org.unclesniper.uake.semantics.Transform;
+import org.unclesniper.uake.semantics.TypeUtils;
 import org.unclesniper.uake.semantics.UakeModule;
 import org.unclesniper.uake.semantics.UakeScoped;
 import org.unclesniper.uake.semantics.UakeTypeTemplate;
 import org.unclesniper.uake.semantics.InstanceofTransform;
 import org.unclesniper.uake.ElementReferenceTypeException;
 import org.unclesniper.uake.semantics.TemplateArityFilter;
+import org.unclesniper.uake.TemplateReferenceArityException;
 import org.unclesniper.uake.AmbiguousElementReferenceException;
 
 public class TypeSpecifier extends Syntax {
@@ -77,14 +79,17 @@ public class TypeSpecifier extends Syntax {
 			UakeModule.Group<UakeTypeTemplate> matching
 					= templates.select(new TemplateArityFilter<UakeTypeTemplate>(templateArguments.size()));
 			if(matching.isEmpty()) {
-				//TODO
+				QualifiedName.Segment tail = name.getTail();
+				throw new TemplateReferenceArityException(tail.getLocation(), tail.getName(), templates.getSize(),
+						TemplateReferenceArityException.RequiredType.TYPE, templateArguments.size());
 			}
 			if(matching.isAmbiguous()) {
 				QualifiedName.Segment tail = name.getTail();
 				throw new AmbiguousElementReferenceException(tail.getLocation(), tail.getName(),
 						AmbiguousElementReferenceException.RequiredType.TYPE_TEMPLATE);
 			}
-			return matching.getFirst().emitType(null/*TODO*/, name.getTail().getLocation());
+			return matching.getFirst().emitType(TypeUtils.getTemplateArgumentsAsArray(templateArguments, cctx),
+					name.getTail().getLocation());
 		}
 	}
 

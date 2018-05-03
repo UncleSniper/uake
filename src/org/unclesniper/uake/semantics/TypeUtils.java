@@ -3,6 +3,8 @@ package org.unclesniper.uake.semantics;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.syntax.TypeSpecifier;
 import org.unclesniper.uake.TemplateArityException;
 
 public class TypeUtils {
@@ -26,7 +28,7 @@ public class TypeUtils {
 	}
 
 	public static UakeType[] getTemplateArgumentsAsArray(UakeMember member) {
-		List<UakeMember> arguments = new LinkedList<UakeMember>();
+		List<UakeType> arguments = new LinkedList<UakeType>();
 		for(UakeType argument : member.getTemplateArguments())
 			arguments.add(argument);
 		return arguments.toArray(TypeUtils.UAKE_TYPE_ARRAY_TEMPLATE);
@@ -39,6 +41,14 @@ public class TypeUtils {
 			throw new TemplateArityException(emitter, emissionLocation, min, templateArguments.length);
 		if(max >= 0 && templateArguments.length > max)
 			throw new TemplateArityException(emitter, emissionLocation, max, templateArguments.length);
+	}
+
+	public static UakeType[] getTemplateArgumentsAsArray(Iterable<TypeSpecifier> arguments,
+			CompilationContext cctx) {
+		List<UakeType> types = new LinkedList<UakeType>();
+		for(TypeSpecifier argument : arguments)
+			types.add(argument.bindType(cctx));
+		return types.toArray(TypeUtils.UAKE_TYPE_ARRAY_TEMPLATE);
 	}
 
 }

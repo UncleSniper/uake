@@ -76,7 +76,7 @@ public class VariableDefinition extends Definition {
 	}
 
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		cctx.getVariableByDefinition(this).setType(type.bindType(cctx));
 	}
 
 }

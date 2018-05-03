@@ -53,7 +53,8 @@ public class InstanceofOperation extends Expression {
 	}
 
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		leftOperand.bindTypes(cctx);
+		//TODO: rightOperand.bindType(cctx)
 	}
 
 }

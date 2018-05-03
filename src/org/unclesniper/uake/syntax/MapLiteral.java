@@ -52,7 +52,10 @@ public class MapLiteral extends Expression {
 	}
 
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		for(Binding binding : bindings) {
+			binding.getKey().bindTypes(cctx);
+			binding.getValue().bindTypes(cctx);
+		}
 	}
 
 }

@@ -80,7 +80,9 @@ public class NewConstruct extends Expression {
 	}
 
 	public void bindTypes(CompilationContext cctx) {
-		//TODO: type
+		//TODO: type.bindType(cctx)
+		for(Expression argument : arguments)
+			argument.bindTypes(cctx);
 		for(FieldInitializer field : fields)
 			field.getValue().bindTypes(cctx);
 	}

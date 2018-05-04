@@ -21,6 +21,8 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 
 		public abstract void createElement(FunctionDefinition definition, CompilationContext cctx);
 
+		public abstract void bindTypes(FunctionDefinition definition, CompilationContext cctx);
+
 	}
 
 	public static abstract class ScriptBody extends Body {
@@ -46,8 +48,7 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 			UakeModule targetModule = cctx.getTargetModule();
 			QualifiedName qname = new QualifiedName(targetModule.getQualifiedName(),
 					definition.name, definition.nameLocation);
-			boolean isTemplate = definition.isTemplate();
-			if(isTemplate) {
+			if(definition.isTemplate()) {
 				SoftFunctionTemplate function = new SoftFunctionTemplate(qname, definition.getLocation(), null);
 				for(TemplateParameter tparam : definition.getTemplateParameters())
 					function.addTemplateParameter(tparam);
@@ -79,6 +80,10 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 			finally {
 				cctx.setTargetModule(oldTarget);
 			}
+		}
+
+		public void bindTypes(FunctionDefinition definition, CompilationContext cctx) {
+			//TODO
 		}
 
 	}
@@ -175,6 +180,10 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 			}
 		}
 
+		public void bindTypes(FunctionDefinition definition, CompilationContext cctx) {
+			//TODO
+		}
+
 	}
 
 	private TypeSpecifier returnType;
@@ -244,7 +253,7 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 	}
 
 	public void bindTypes(CompilationContext cctx) {
-		//TODO
+		body.bindTypes(this, cctx);
 	}
 
 }

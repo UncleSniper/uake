@@ -6,6 +6,7 @@ import org.unclesniper.uake.Location;
 import org.unclesniper.uake.CompilationContext;
 import org.unclesniper.uake.syntax.TypeSpecifier;
 import org.unclesniper.uake.TemplateArityException;
+import org.unclesniper.uake.syntax.TemplateParameter;
 
 public class TypeUtils {
 
@@ -49,6 +50,14 @@ public class TypeUtils {
 		for(TypeSpecifier argument : arguments)
 			types.add(argument.bindType(cctx));
 		return types.toArray(TypeUtils.UAKE_TYPE_ARRAY_TEMPLATE);
+	}
+
+	public static OverlayLevel createParameterTemplateScope(UakeTemplate template) {
+		OverlayLevel scope = new OverlayLevel();
+		for(TemplateParameter parameter : template.getTemplateParameters()) {
+			//TODO
+		}
+		return scope;
 	}
 
 }

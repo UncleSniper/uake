@@ -3,6 +3,7 @@ package org.unclesniper.uake.syntax;
 import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
+import org.unclesniper.uake.CompilationContext;
 
 public class Utterance extends Syntax {
 
@@ -22,6 +23,14 @@ public class Utterance extends Syntax {
 	public void addTopLevel(TopLevel topLevel) {
 		if(topLevel != null)
 			topLevels.add(topLevel);
+	}
+
+	public void compile(CompilationContext cctx) {
+		//TODO: grok headers
+		for(TopLevel topLevel : topLevels)
+			topLevel.createElements(cctx);
+		for(TopLevel topLevel : topLevels)
+			topLevel.bindTypes(cctx);
 	}
 
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.LinkedList;
 import org.unclesniper.uake.Location;
 import org.unclesniper.uake.CompilationContext;
+import org.unclesniper.uake.semantics.TypeUtils;
 import org.unclesniper.uake.semantics.UakeModule;
 import org.unclesniper.uake.semantics.SoftFunction;
 import org.unclesniper.uake.semantics.JavaFunction;
@@ -83,7 +84,15 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 		}
 
 		public void bindTypes(FunctionDefinition definition, CompilationContext cctx) {
-			//TODO
+			if(definition.isTemplate()) {
+				SoftFunctionTemplate function
+						= (SoftFunctionTemplate)cctx.getFunctionTemplateByDefinition(definition);
+				//TODO
+			}
+			else {
+				SoftFunction function = (SoftFunction)cctx.getFunctionByDefinition(definition);
+				//TODO
+			}
 		}
 
 	}
@@ -170,6 +179,7 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 							null, param.isElliptic()));
 				targetModule.put(function);
 				cctx.putFunctionTemplateForDefinition(definition, function);
+				TypeUtils.createParameterTemplateScope(function);
 			}
 			else {
 				JavaFunction function = new JavaFunction(qname, definition.getLocation(), null, null);
@@ -181,7 +191,15 @@ public class FunctionDefinition extends AbstractTemplate implements Parameterize
 		}
 
 		public void bindTypes(FunctionDefinition definition, CompilationContext cctx) {
-			//TODO
+			if(definition.isTemplate()) {
+				JavaFunctionTemplate function
+						= (JavaFunctionTemplate)cctx.getFunctionTemplateByDefinition(definition);
+				//TODO
+			}
+			else {
+				JavaFunction function = (JavaFunction)cctx.getFunctionByDefinition(definition);
+				//TODO
+			}
 		}
 
 	}

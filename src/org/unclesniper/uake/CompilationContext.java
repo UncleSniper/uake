@@ -16,6 +16,8 @@ import org.unclesniper.uake.syntax.QualifiedName;
 import org.unclesniper.uake.syntax.TypeDefinition;
 import org.unclesniper.uake.semantics.UakeFunction;
 import org.unclesniper.uake.semantics.UakeVariable;
+import org.unclesniper.uake.semantics.UakeTemplate;
+import org.unclesniper.uake.semantics.OverlayLevel;
 import org.unclesniper.uake.syntax.ModuleDefinition;
 import org.unclesniper.uake.syntax.BindingExpression;
 import org.unclesniper.uake.syntax.FunctionDefinition;
@@ -74,6 +76,9 @@ public class CompilationContext {
 
 	private final IdentityHashMap<Parameter, UakeVariable> variablesByParameter
 			= new IdentityHashMap<Parameter, UakeVariable>();
+
+	private final IdentityHashMap<UakeTemplate, OverlayLevel> templateParameterScopeByTemplate
+			= new IdentityHashMap<UakeTemplate, OverlayLevel>();
 
 	private final Deque<UakeScope> scope = new LinkedList<UakeScope>();
 
@@ -199,6 +204,14 @@ public class CompilationContext {
 
 	public void putVariableForParameter(Parameter parameter, UakeVariable variable) {
 		variablesByParameter.put(parameter, variable);
+	}
+
+	public OverlayLevel getTemplateParameterScopeByTemplate(UakeTemplate template) {
+		return templateParameterScopeByTemplate.get(template);
+	}
+
+	public void putTemplateParameterScopeForTemplate(UakeTemplate template, OverlayLevel scope) {
+		templateParameterScopeByTemplate.put(template, scope);
 	}
 
 	public void pushScope(UakeScope scope) {
